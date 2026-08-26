@@ -17,8 +17,6 @@ import { clamp } from "@/lib/motion";
 import {
     getVariableInfo,
     numberPropsFromDefinition,
-    choicePropsFromDefinition,
-    clozePropsFromDefinition,
     linkedHighlightPropsFromDefinition,
 } from "../variables";
 

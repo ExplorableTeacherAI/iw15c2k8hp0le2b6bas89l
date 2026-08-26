@@ -15,8 +15,6 @@ import { useVar, useSetVar } from "@/stores";
 import { clamp } from "@/lib/motion";
 import {
     getVariableInfo,
-    choicePropsFromDefinition,
-    clozePropsFromDefinition,
     linkedHighlightPropsFromDefinition,
 } from "../variables";
 

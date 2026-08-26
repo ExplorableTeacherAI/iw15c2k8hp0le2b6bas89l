@@ -270,6 +270,64 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
     },
 
     // ========================================
+    // SECTION: Perpendiculars at a Point and from a Point
+    // ========================================
+
+    perpendicularPointX: {
+        defaultValue: 0.6,
+        type: 'number',
+        label: 'Point P, along the line',
+        description: 'Horizontal position of the movable point P',
+        unit: 'cm',
+        min: -2.6,
+        max: 2.6,
+        step: 0.1,
+        color: '#62D0AD',
+    },
+    perpendicularPointHeight: {
+        defaultValue: 1.9,
+        type: 'number',
+        label: 'Height of P above the line',
+        description: 'How far the movable point P sits above the line, zero when it is on the line',
+        unit: 'cm',
+        min: 0,
+        max: 3,
+        step: 0.1,
+        color: '#62D0AD',
+    },
+    perpendicularHighlight: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Perpendicular figure highlight',
+        description: 'Which element is highlighted: arcFromPoint, marksOnLine or perpendicular',
+        color: '#62D0AD',
+        bgColor: 'rgba(98, 208, 173, 0.22)',
+    },
+    answer_perpendicular_foot: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Answer: what the foot is of the two marks',
+        description: 'Student answer naming the foot of the perpendicular in terms of the two marks',
+        placeholder: '???',
+        correctAnswer: ['midpoint', 'mid-point', 'mid point', 'middle'],
+        color: '#8E90F5',
+    },
+    answer_perpendicular_first_step: {
+        defaultValue: '',
+        type: 'select',
+        label: 'Answer: first step for a point on the line',
+        description: 'Student answer for the first step when the point already lies on the line',
+        placeholder: '???',
+        correctAnswer: 'swing equal arcs each side of Q to make a short segment',
+        options: [
+            'swing equal arcs each side of Q to make a short segment',
+            'join Q to the nearer end of the line',
+            'measure a right angle at Q with a protractor',
+        ],
+        color: '#8E90F5',
+    },
+
+    // ========================================
     // ADD YOUR VARIABLES HERE
     // ========================================
 

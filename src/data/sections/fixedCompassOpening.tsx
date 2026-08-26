@@ -411,54 +411,7 @@ export const fixedCompassOpeningBlocks: ReactElement[] = [
 
     <StackLayout key="layout-fixed-opening-question-equal" maxWidth="xl">
         <Block id="fixed-opening-question-equal" padding="md">
-            <EditableParagraph id="para-fixed-opening-question-equal" blockId="fixed-opening-question-equal">
-                A student bisects a different segment PQ. She swings the first arc with the compasses
-                opened to 5 cm, then knocks them and swings the second at 4 cm, and her line misses
-                the middle of PQ. For the line to land on the middle, the two openings must be{" "}
-                <InlineFeedback
-                    varName="answer_fixed_opening_equal"
-                    correctValue={["equal", "the same", "same", "identical"]}
-                    position="terminal"
-                    successMessage="— yes. Equal openings are what force each crossing to be the same distance from P as from Q"
-                    failureMessage="— not quite."
-                    hint="Think about what every winning setting in the figure above had in common"
-                    visualizationHint={{
-                        blockId: "fixed-opening-visual",
-                        hintKey: "feedback-fixed-opening-equal",
-                        label: "Discover it yourself",
-                        steps: [
-                            {
-                                gesture: "drag",
-                                label: "Pull the left handle until the opening from A reads 4.0 cm",
-                                position: { x: "13%", y: "61%" },
-                                dragPath: { type: "line", startOffset: { x: -16, y: 8 }, endOffset: { x: 20, y: -10 } },
-                                completionVar: "fixedOpeningRadiusA",
-                                completionValue: 4,
-                                completionTolerance: 0.25,
-                            },
-                            {
-                                gesture: "drag",
-                                label: "Now pull the right handle to 4.0 cm as well — watch the line reach the target",
-                                position: { x: "82%", y: "59%" },
-                                dragPath: { type: "line", startOffset: { x: 16, y: 8 }, endOffset: { x: -20, y: -10 } },
-                                completionVar: "fixedOpeningRadiusB",
-                                completionValue: 4,
-                                completionTolerance: 0.25,
-                            },
-                        ],
-                        resetVars: {
-                            fixedOpeningRadiusA: DEFAULT_RADIUS_A,
-                            fixedOpeningRadiusB: DEFAULT_RADIUS_B,
-                        },
-                    }}
-                >
-                    <InlineClozeInput
-                        varName="answer_fixed_opening_equal"
-                        correctAnswer={["equal", "the same", "same", "identical"]}
-                        {...clozePropsFromDefinition(getVariableInfo('answer_fixed_opening_equal'))}
-                    />
-                </InlineFeedback>.
-            </EditableParagraph>
+            <EditableParagraph id="para-fixed-opening-question-equal" blockId="fixed-opening-question-equal">A student bisects a different segment PQ. She swings the first arc with the compasses opened to 5 cm, then knocks them and swings the second at 4 cm, and her line misses the middle of PQ. For the line to land on the middle, the two openings must be <InlineFeedback varName={"answer_fixed_opening_equal"} correctValue={["equal", "the same", "same", "identical"]} caseSensitive={false} position={"terminal"} successMessage={"— yes. Equal openings are what force each crossing to be the same distance from P as from Q"} failureMessage={"— not quite."} hint={"Think about what every winning setting in the figure above had in common"} reviewLabel={"Review this concept"} visualizationHint={{"blockId": "fixed-opening-visual", "hintKey": "feedback-fixed-opening-equal", "label": "Discover it yourself", "steps": [{"gesture": "drag", "label": "Pull the left handle until the opening from A reads 4.0 cm", "position": {"x": "13%", "y": "61%"}, "dragPath": {"type": "line", "startOffset": {"x": -16, "y": 8}, "endOffset": {"x": 20, "y": -10}}, "completionVar": "fixedOpeningRadiusA", "completionValue": 4, "completionTolerance": 0.25}, {"gesture": "drag", "label": "Now pull the right handle to 4.0 cm as well — watch the line reach the target", "position": {"x": "82%", "y": "59%"}, "dragPath": {"type": "line", "startOffset": {"x": 16, "y": 8}, "endOffset": {"x": -20, "y": -10}}, "completionVar": "fixedOpeningRadiusB", "completionValue": 4, "completionTolerance": 0.25}], "resetVars": {"fixedOpeningRadiusA": 4.2, "fixedOpeningRadiusB": 3.2}}}><InlineClozeInput varName={"answer_fixed_opening_equal"} correctAnswer={"equal | the same | same | identical"} placeholder={"???"} color={"#E53935"} bgColor={"rgba(59, 130, 246, 0.35)"} caseSensitive={false} id={"cloze-1787714988103-3tk4o"} /></InlineFeedback>.</EditableParagraph>
         </Block>
     </StackLayout>,
 

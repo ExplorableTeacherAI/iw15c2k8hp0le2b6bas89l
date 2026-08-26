@@ -518,57 +518,7 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
 
     <StackLayout key="layout-midpoint-question-why" maxWidth="xl">
         <Block id="midpoint-question-why" padding="md">
-            <EditableParagraph id="para-midpoint-question-why" blockId="midpoint-question-why">
-                So why is the constructed midpoint exact when the ruler mark is not?{" "}
-                <InlineFeedback
-                    varName="answer_midpoint_why_exact"
-                    correctValue="it comes from two equal distances, not from reading a scale"
-                    position="standalone"
-                    successMessage="Exactly. Nothing was read off a scale, so there was no rounding to do in the first place"
-                    failureMessage="Not quite!"
-                    hint="It is not about which tool is better made. Ask what each method actually does"
-                    visualizationHint={{
-                        blockId: "midpoint-visual",
-                        hintKey: "feedback-midpoint-why-exact",
-                        label: "Discover it yourself",
-                        steps: [
-                            {
-                                gesture: "drag-horizontal",
-                                label: "Slide the amber mark as close to the middle as the millimetre marks allow",
-                                position: { x: "47%", y: "33%" },
-                                dragPath: { type: "line", startOffset: { x: -22, y: 0 }, endOffset: { x: 22, y: 0 } },
-                                completionVar: "midpointRulerReading",
-                                completionValue: 3.65,
-                                completionTolerance: 0.06,
-                            },
-                            {
-                                gesture: "drag-horizontal",
-                                label: "Now drag the magnifier over the middle — the two marks still do not meet",
-                                position: { x: "42%", y: "72%" },
-                                dragPath: { type: "line", startOffset: { x: -24, y: 0 }, endOffset: { x: 24, y: 0 } },
-                                completionVar: "midpointLensPosition",
-                                completionValue: 3.65,
-                                completionTolerance: 0.3,
-                            },
-                        ],
-                        resetVars: {
-                            midpointRulerReading: DEFAULT_RULER_READING,
-                            midpointLensPosition: DEFAULT_LENS_POSITION,
-                        },
-                    }}
-                >
-                    <InlineClozeChoice
-                        varName="answer_midpoint_why_exact"
-                        correctAnswer="it comes from two equal distances, not from reading a scale"
-                        options={[
-                            "it comes from two equal distances, not from reading a scale",
-                            "a pair of compasses is a more accurate tool than a ruler",
-                            "the arcs make the segment easier to halve",
-                        ]}
-                        {...choicePropsFromDefinition(getVariableInfo('answer_midpoint_why_exact'))}
-                    />
-                </InlineFeedback>
-            </EditableParagraph>
+            <EditableParagraph id="para-midpoint-question-why" blockId="midpoint-question-why">So why is the constructed midpoint exact when the ruler mark is not? <InlineFeedback varName={"answer_midpoint_why_exact"} correctValue={"it comes from two equal distances, not from reading a scale"} caseSensitive={false} position={"standalone"} successMessage={"Exactly. Nothing was read off a scale, so there was no rounding to do in the first place"} failureMessage={"Not quite!"} hint={"It is not about which tool is better made. Ask what each method actually does"} reviewLabel={"Review this concept"} visualizationHint={{"blockId": "midpoint-visual", "hintKey": "feedback-midpoint-why-exact", "label": "Discover it yourself", "steps": [{"gesture": "drag-horizontal", "label": "Slide the amber mark as close to the middle as the millimetre marks allow", "position": {"x": "47%", "y": "33%"}, "dragPath": {"type": "line", "startOffset": {"x": -22, "y": 0}, "endOffset": {"x": 22, "y": 0}}, "completionVar": "midpointRulerReading", "completionValue": 3.65, "completionTolerance": 0.06}, {"gesture": "drag-horizontal", "label": "Now drag the magnifier over the middle — the two marks still do not meet", "position": {"x": "42%", "y": "72%"}, "dragPath": {"type": "line", "startOffset": {"x": -24, "y": 0}, "endOffset": {"x": 24, "y": 0}}, "completionVar": "midpointLensPosition", "completionValue": 3.65, "completionTolerance": 0.3}], "resetVars": {"midpointRulerReading": 3.4, "midpointLensPosition": 2.9}}}><InlineClozeChoice varName={"answer_midpoint_why_exact"} correctAnswer={"it comes from two equal distances, not from reading a scale"} options={["it comes from two equal distances, not from reading a scale", "a pair of compasses is a more accurate tool than a ruler", "the arcs make the segment easier to halve"]} placeholder={"???"} color={"#E53935"} bgColor={"rgba(59, 130, 246, 0.35)"} id={"choice-1787714988109-o02gt"} /></InlineFeedback></EditableParagraph>
         </Block>
     </StackLayout>,
 ];

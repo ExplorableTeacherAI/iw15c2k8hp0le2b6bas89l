@@ -58,22 +58,11 @@
       }
     },
     {
-      "id": "layout-orient-promise",
-      "type": "stack",
-      "columns": [
-        [
-          "orient-promise"
-        ]
-      ],
-      "props": {
-        "maxWidth": "xl"
-      }
-    },
-    {
       "id": "layout-orient-prior-knowledge",
       "type": "stack",
       "columns": [
         [
+          "orient-promise",
           "orient-prior-knowledge"
         ]
       ],

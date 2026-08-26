@@ -25,7 +25,7 @@ import {
 // ── View geometry ────────────────────────────────────────────────────────────
 
 const VIEW_WIDTH = 560;
-const VIEW_HEIGHT = 340;
+const VIEW_HEIGHT = 360;
 const AXIS_Y = 120;
 const LEFT_X = 60;
 const PIXELS_PER_CM = 60;
@@ -375,6 +375,18 @@ function MidpointComparisonDrawing() {
                 magnifier
             </text>
 
+            {/* hovering the constructed bisector lights the bound phrase in the prose */}
+            <line
+                x1={toScreenX(TRUE_MIDPOINT)}
+                y1={AXIS_Y - 62}
+                x2={toScreenX(TRUE_MIDPOINT)}
+                y2={AXIS_Y + 62}
+                stroke="transparent"
+                strokeWidth={18}
+                onPointerEnter={() => setVar("midpointHighlight", "constructedMidpoint")}
+                onPointerLeave={() => setVar("midpointHighlight", "")}
+            />
+
             {/* the grab area for the ruler mark */}
             <circle
                 cx={toScreenX(rulerReading)}
@@ -424,13 +436,13 @@ function MidpointComparisonFigure() {
                     {
                         gesture: "drag-horizontal",
                         label: "Slide the amber mark to the halfway point you read",
-                        position: { x: "48%", y: "35%" },
+                        position: { x: "47%", y: "33%" },
                         dragPath: { type: "line", startOffset: { x: -22, y: 0 }, endOffset: { x: 22, y: 0 } },
                     },
                     {
                         gesture: "drag-horizontal",
                         label: "Now drag the magnifier over the middle",
-                        position: { x: "42%", y: "76%" },
+                        position: { x: "42%", y: "72%" },
                         dragPath: { type: "line", startOffset: { x: -24, y: 0 }, endOffset: { x: 24, y: 0 } },
                     },
                 ]}
@@ -540,7 +552,7 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                             {
                                 gesture: "drag-horizontal",
                                 label: "Slide the amber mark as close to the middle as the millimetre marks allow",
-                                position: { x: "48%", y: "35%" },
+                                position: { x: "47%", y: "33%" },
                                 dragPath: { type: "line", startOffset: { x: -22, y: 0 }, endOffset: { x: 22, y: 0 } },
                                 completionVar: "midpointRulerReading",
                                 completionValue: 3.65,
@@ -549,7 +561,7 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                             {
                                 gesture: "drag-horizontal",
                                 label: "Now drag the magnifier over the middle — the two marks still do not meet",
-                                position: { x: "42%", y: "76%" },
+                                position: { x: "42%", y: "72%" },
                                 dragPath: { type: "line", startOffset: { x: -24, y: 0 }, endOffset: { x: 24, y: 0 } },
                                 completionVar: "midpointLensPosition",
                                 completionValue: 3.65,

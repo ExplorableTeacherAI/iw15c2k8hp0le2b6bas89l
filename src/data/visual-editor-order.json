@@ -107,22 +107,11 @@
       }
     },
     {
-      "id": "layout-equal-distance-visual",
-      "type": "stack",
-      "columns": [
-        [
-          "equal-distance-visual"
-        ]
-      ],
-      "props": {
-        "maxWidth": "xl"
-      }
-    },
-    {
       "id": "layout-equal-distance-insight",
       "type": "stack",
       "columns": [
         [
+          "equal-distance-visual",
           "equal-distance-insight"
         ]
       ],

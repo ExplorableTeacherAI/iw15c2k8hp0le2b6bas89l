@@ -417,31 +417,7 @@ export const fixedCompassOpeningBlocks: ReactElement[] = [
 
     <StackLayout key="layout-fixed-opening-question-arcs" maxWidth="xl">
         <Block id="fixed-opening-question-arcs" padding="md">
-            <EditableParagraph id="para-fixed-opening-question-arcs" blockId="fixed-opening-question-arcs">
-                Her neighbour finishes the same construction, then rubs the arcs out to make the page
-                look tidy. What has he thrown away?{" "}
-                <InlineFeedback
-                    varName="answer_fixed_opening_arcs"
-                    correctValue="the evidence that the two distances were equal"
-                    position="standalone"
-                    successMessage="Exactly. Without the arcs, nobody can tell whether that line was constructed or simply drawn by eye"
-                    failureMessage="Not quite!"
-                    hint="Ask what the arcs prove about the crossings, rather than what they look like"
-                    reviewBlockId="fixed-opening-insight"
-                    reviewLabel="Read that again"
-                >
-                    <InlineClozeChoice
-                        varName="answer_fixed_opening_arcs"
-                        correctAnswer="the evidence that the two distances were equal"
-                        options={[
-                            "the evidence that the two distances were equal",
-                            "nothing, the line is still correct",
-                            "the midpoint of the segment",
-                        ]}
-                        {...choicePropsFromDefinition(getVariableInfo('answer_fixed_opening_arcs'))}
-                    />
-                </InlineFeedback>
-            </EditableParagraph>
+            <EditableParagraph id="para-fixed-opening-question-arcs" blockId="fixed-opening-question-arcs">Her neighbour finishes the same construction, then rubs the arcs out to make the page look tidy. What has he thrown away? <InlineFeedback varName={"answer_fixed_opening_arcs"} correctValue={"the evidence that the two distances were equal"} caseSensitive={false} position={"standalone"} successMessage={"Exactly. Without the arcs, nobody can tell whether that line was constructed or simply drawn by eye"} failureMessage={"Not quite!"} hint={"Ask what the arcs prove about the crossings, rather than what they look like"} reviewBlockId={"fixed-opening-insight"} reviewLabel={"Read that again"}><InlineClozeChoice varName={"answer_fixed_opening_arcs"} correctAnswer={"the evidence that the two distances were equal"} options={["the evidence that the two distances were equal", "nothing, the line is still correct", "the midpoint of the segment"]} placeholder={"???"} color={"#E53935"} bgColor={"rgba(59, 130, 246, 0.35)"} id={"choice-1787714988104-jdpu4"} /></InlineFeedback></EditableParagraph>
         </Block>
     </StackLayout>,
 ];

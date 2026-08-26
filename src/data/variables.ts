@@ -154,6 +154,64 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
     },
 
     // ========================================
+    // SECTION: Why the Compass Opening Must Stay Fixed
+    // ========================================
+
+    fixedOpeningRadiusA: {
+        defaultValue: 4.2,
+        type: 'number',
+        label: 'Opening from A',
+        description: 'Compass opening used for the arc swung from A',
+        unit: 'cm',
+        min: 2,
+        max: 5,
+        step: 0.1,
+        color: '#64748B',
+    },
+    fixedOpeningRadiusB: {
+        defaultValue: 3.2,
+        type: 'number',
+        label: 'Opening from B',
+        description: 'Compass opening used for the arc swung from B',
+        unit: 'cm',
+        min: 2,
+        max: 5,
+        step: 0.1,
+        color: '#64748B',
+    },
+    fixedOpeningHighlight: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Fixed opening highlight',
+        description: 'Which element of the arcs figure is highlighted: arcFromA, arcFromB or crossingLine',
+        color: '#62D0AD',
+        bgColor: 'rgba(98, 208, 173, 0.22)',
+    },
+    answer_fixed_opening_equal: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Answer: what the two openings must be',
+        description: 'Student answer describing the relationship the two compass openings must have',
+        placeholder: '???',
+        correctAnswer: ['equal', 'the same', 'same', 'identical'],
+        color: '#8E90F5',
+    },
+    answer_fixed_opening_arcs: {
+        defaultValue: '',
+        type: 'select',
+        label: 'Answer: what rubbing out the arcs loses',
+        description: 'Student answer about what is lost when the arcs are erased',
+        placeholder: '???',
+        correctAnswer: 'the evidence that the two distances were equal',
+        options: [
+            'the evidence that the two distances were equal',
+            'nothing, the line is still correct',
+            'the midpoint of the segment',
+        ],
+        color: '#8E90F5',
+    },
+
+    // ========================================
     // ADD YOUR VARIABLES HERE
     // ========================================
 

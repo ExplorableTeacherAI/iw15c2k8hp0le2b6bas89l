@@ -1,8 +1,321 @@
-import { type ReactElement } from "react";
+import React, { useEffect, useRef, useState, type ReactElement } from "react";
 import { StackLayout } from "@/components/layouts";
 import { Block } from "@/components/templates";
-import { EditableH2, EditableParagraph } from "@/components/atoms";
-import { VisualOptionCards } from "@/components/organisms";
+import {
+    EditableH2,
+    EditableParagraph,
+    InlineClozeChoice,
+    InlineFeedback,
+    InlineLinkedHighlight,
+    InlineScrubbleNumber,
+    InteractionHintSequence,
+} from "@/components/atoms";
+import { Figure } from "@/components/molecules";
+import { useVar, useSetVar } from "@/stores";
+import { clamp } from "@/lib/motion";
+import {
+    getVariableInfo,
+    numberPropsFromDefinition,
+    choicePropsFromDefinition,
+    linkedHighlightPropsFromDefinition,
+} from "../variables";
+
+// ── View geometry ────────────────────────────────────────────────────────────
+
+const VIEW_WIDTH = 560;
+const VIEW_HEIGHT = 340;
+const ORIGIN_X = 280;
+const ORIGIN_Y = 208;
+const PIXELS_PER_CM = 44;
+
+const X_LIMIT = 5.6;
+const Y_MAX = 3.2;
+const Y_MIN = -2.3;
+
+const MATCH_TOLERANCE = 0.12; // cm difference counted as "equal"
+const MARK_SPACING = 0.3; // cm — how far apart new pencil marks must be
+
+const INK = "#334155"; // labels, pencil marks
+const INK_STRUCTURE = "#64748B"; // the segment and the two measured rods
+const INK_QUIET = "#CBD5E1"; // end caps
+const ACCENT = "#62D0AD"; // ONE accent: the draggable point and the equal state
+
+const EASE_150 = { transition: "opacity 150ms ease, stroke-width 150ms ease" } as const;
+
+const DEFAULT_POINT_X = 2.6;
+const DEFAULT_POINT_Y = 1.8;
+
+const toScreenX = (x: number) => ORIGIN_X + x * PIXELS_PER_CM;
+const toScreenY = (y: number) => ORIGIN_Y - y * PIXELS_PER_CM;
+
+/** ONE formatter for this quantity — used by the drawing and the prose alike. */
+const formatLength = (value: number) => `${value.toFixed(1)} cm`;
+
+// ── The bespoke drawing ──────────────────────────────────────────────────────
+
+function EqualDistanceDrawing() {
+    const setVar = useSetVar();
+    const pointX = useVar<number>("equalDistancePointX", DEFAULT_POINT_X);
+    const pointY = useVar<number>("equalDistancePointY", DEFAULT_POINT_Y);
+    const segmentLength = useVar<number>("equalDistanceSegmentLength", 6);
+    const marks = useVar<number[]>("equalDistanceMarks", []);
+    const highlight = useVar<string>("equalDistanceHighlight", "");
+
+    const [dragging, setDragging] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const svgRef = useRef<SVGSVGElement>(null);
+    const marksRef = useRef<number[]>(marks);
+    marksRef.current = marks;
+
+    // A new segment deserves a fresh page: clear the marks when AB changes.
+    const previousLength = useRef(segmentLength);
+    useEffect(() => {
+        if (previousLength.current !== segmentLength) {
+            previousLength.current = segmentLength;
+            setVar("equalDistanceMarks", []);
+        }
+    }, [segmentLength, setVar]);
+
+    const halfSegment = segmentLength / 2;
+    const distanceToA = Math.hypot(pointX + halfSegment, pointY);
+    const distanceToB = Math.hypot(pointX - halfSegment, pointY);
+    const isEqual = Math.abs(distanceToA - distanceToB) < MATCH_TOLERANCE;
+
+    // The linked-highlight contract: the target pops, everything else recedes.
+    const opacityFor = (id: string) => (highlight && highlight !== id ? 0.35 : 1);
+    const isActive = (id: string) => highlight === id;
+    const hoverProps = (id: string) => ({
+        onPointerEnter: () => setVar("equalDistanceHighlight", id),
+        onPointerLeave: () => setVar("equalDistanceHighlight", ""),
+    });
+
+    const dropMarkIfEqual = (x: number, y: number) => {
+        if (Math.abs(Math.hypot(x + halfSegment, y) - Math.hypot(x - halfSegment, y)) >= MATCH_TOLERANCE) return;
+        const existing = marksRef.current;
+        for (let index = 0; index < existing.length; index += 2) {
+            if (Math.hypot(existing[index] - x, existing[index + 1] - y) < MARK_SPACING) return;
+        }
+        const updated = [...existing, x, y];
+        marksRef.current = updated;
+        setVar("equalDistanceMarks", updated);
+    };
+
+    const handlePointerMove = (event: React.PointerEvent<SVGCircleElement>) => {
+        if (!dragging || !svgRef.current) return;
+        const rect = svgRef.current.getBoundingClientRect();
+        const rawX = ((event.clientX - rect.left) / rect.width) * VIEW_WIDTH;
+        const rawY = ((event.clientY - rect.top) / rect.height) * VIEW_HEIGHT;
+        const nextX = clamp((rawX - ORIGIN_X) / PIXELS_PER_CM, -X_LIMIT, X_LIMIT);
+        const nextY = clamp((ORIGIN_Y - rawY) / PIXELS_PER_CM, Y_MIN, Y_MAX);
+        setVar("equalDistancePointX", nextX);
+        setVar("equalDistancePointY", nextY);
+        dropMarkIfEqual(nextX, nextY);
+    };
+
+    const screenA = { x: toScreenX(-halfSegment), y: toScreenY(0) };
+    const screenB = { x: toScreenX(halfSegment), y: toScreenY(0) };
+    const screenP = { x: toScreenX(pointX), y: toScreenY(pointY) };
+
+    // Rod labels ride the middle of each rod, clamped so they never leave the frame.
+    const labelHalfWidth = 36;
+    const labelX = (from: { x: number }) =>
+        clamp((from.x + screenP.x) / 2, 24 + labelHalfWidth, VIEW_WIDTH - 24 - labelHalfWidth);
+    const labelY = (from: { y: number }) => (from.y + screenP.y) / 2 - 10;
+
+    const markCount = Math.floor(marks.length / 2);
+    const handleRadius = dragging || hovered ? 12 : 10;
+
+    return (
+        <svg ref={svgRef} viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} className="block w-full">
+            <defs>
+                <filter id="equal-distance-handle-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#0F172A" floodOpacity="0.25" />
+                </filter>
+            </defs>
+
+            {/* Running count of the marks left behind */}
+            <text
+                x={24}
+                y={32}
+                fill={INK}
+                fontSize="12"
+                textAnchor="start"
+                opacity={opacityFor("count")}
+                style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
+            >
+                {`Pencil marks left behind: ${markCount}`}
+            </text>
+
+            {/* The pencil marks the point has dropped */}
+            <g opacity={opacityFor("marks")} style={EASE_150}>
+                {Array.from({ length: markCount }, (_, index) => (
+                    <circle
+                        key={`mark-${index}`}
+                        cx={toScreenX(marks[index * 2])}
+                        cy={toScreenY(marks[index * 2 + 1])}
+                        r={3.2}
+                        fill={INK}
+                        opacity={0.85}
+                    />
+                ))}
+            </g>
+
+            {/* The segment AB */}
+            <g opacity={opacityFor("segment")} style={EASE_150}>
+                <line
+                    x1={screenA.x}
+                    y1={screenA.y}
+                    x2={screenB.x}
+                    y2={screenB.y}
+                    stroke={INK_STRUCTURE}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                />
+                <circle cx={screenA.x} cy={screenA.y} r={5} fill={INK_STRUCTURE} />
+                <circle cx={screenB.x} cy={screenB.y} r={5} fill={INK_STRUCTURE} />
+                <circle cx={screenA.x} cy={screenA.y} r={9} fill="none" stroke={INK_QUIET} strokeWidth="1.5" />
+                <circle cx={screenB.x} cy={screenB.y} r={9} fill="none" stroke={INK_QUIET} strokeWidth="1.5" />
+                <text x={screenA.x} y={screenA.y + 30} fill={INK} fontSize="13" textAnchor="middle">
+                    A
+                </text>
+                <text x={screenB.x} y={screenB.y + 30} fill={INK} fontSize="13" textAnchor="middle">
+                    B
+                </text>
+            </g>
+
+            {/* Rod to A */}
+            <g opacity={opacityFor("distanceToA")} style={EASE_150} {...hoverProps("distanceToA")}>
+                {isActive("distanceToA") && (
+                    <line
+                        x1={screenA.x}
+                        y1={screenA.y}
+                        x2={screenP.x}
+                        y2={screenP.y}
+                        stroke={ACCENT}
+                        strokeWidth="9"
+                        opacity={0.28}
+                        strokeLinecap="round"
+                    />
+                )}
+                <line
+                    x1={screenA.x}
+                    y1={screenA.y}
+                    x2={screenP.x}
+                    y2={screenP.y}
+                    stroke={isEqual || isActive("distanceToA") ? ACCENT : INK_STRUCTURE}
+                    strokeWidth={isActive("distanceToA") ? 3.6 : 2}
+                    strokeLinecap="round"
+                    style={EASE_150}
+                />
+                <text
+                    x={labelX(screenA)}
+                    y={labelY(screenA)}
+                    fill={isEqual || isActive("distanceToA") ? ACCENT : INK}
+                    fontSize="12"
+                    textAnchor="middle"
+                    style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
+                >
+                    {formatLength(distanceToA)}
+                </text>
+            </g>
+
+            {/* Rod to B */}
+            <g opacity={opacityFor("distanceToB")} style={EASE_150} {...hoverProps("distanceToB")}>
+                {isActive("distanceToB") && (
+                    <line
+                        x1={screenB.x}
+                        y1={screenB.y}
+                        x2={screenP.x}
+                        y2={screenP.y}
+                        stroke={ACCENT}
+                        strokeWidth="9"
+                        opacity={0.28}
+                        strokeLinecap="round"
+                    />
+                )}
+                <line
+                    x1={screenB.x}
+                    y1={screenB.y}
+                    x2={screenP.x}
+                    y2={screenP.y}
+                    stroke={isEqual || isActive("distanceToB") ? ACCENT : INK_STRUCTURE}
+                    strokeWidth={isActive("distanceToB") ? 3.6 : 2}
+                    strokeLinecap="round"
+                    style={EASE_150}
+                />
+                <text
+                    x={labelX(screenB)}
+                    y={labelY(screenB)}
+                    fill={isEqual || isActive("distanceToB") ? ACCENT : INK}
+                    fontSize="12"
+                    textAnchor="middle"
+                    style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
+                >
+                    {formatLength(distanceToB)}
+                </text>
+            </g>
+
+            {/* The draggable point */}
+            <g opacity={opacityFor("point")} style={EASE_150}>
+                <circle
+                    cx={screenP.x}
+                    cy={screenP.y}
+                    r={handleRadius}
+                    fill={ACCENT}
+                    filter="url(#equal-distance-handle-shadow)"
+                    style={{ transition: "r 150ms ease" }}
+                />
+                <circle
+                    cx={screenP.x}
+                    cy={screenP.y}
+                    r={24}
+                    fill="transparent"
+                    style={{ cursor: dragging ? "grabbing" : "grab", touchAction: "none" }}
+                    onPointerDown={(event) => {
+                        event.currentTarget.setPointerCapture(event.pointerId);
+                        setDragging(true);
+                    }}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={() => setDragging(false)}
+                    onPointerCancel={() => setDragging(false)}
+                    onPointerEnter={() => setHovered(true)}
+                    onPointerLeave={() => setHovered(false)}
+                />
+            </g>
+        </svg>
+    );
+}
+
+function EqualDistanceFigure() {
+    const setVar = useSetVar();
+    return (
+        <Figure
+            id="equal-distance-trail"
+            caption="Drag the teal dot around the page. Whenever its distance to A matches its distance to B, both rods turn teal and the dot leaves a pencil mark behind."
+            onReset={() => {
+                setVar("equalDistancePointX", DEFAULT_POINT_X);
+                setVar("equalDistancePointY", DEFAULT_POINT_Y);
+                setVar("equalDistanceMarks", []);
+                setVar("equalDistanceHighlight", "");
+            }}
+        >
+            <EqualDistanceDrawing />
+            <InteractionHintSequence
+                hintKey="equal-distance-trail-drag"
+                steps={[
+                    {
+                        gesture: "drag",
+                        label: "Drag the teal dot and hunt for places where the two lengths match",
+                        position: { x: "70%", y: "38%" },
+                        dragPath: { type: "line", startOffset: { x: 24, y: 0 }, endOffset: { x: -34, y: -18 } },
+                    },
+                ]}
+            />
+        </Figure>
+    );
+}
+
+// ── Section blocks ───────────────────────────────────────────────────────────
 
 export const equallyFarFromBothEndsBlocks: ReactElement[] = [
     <StackLayout key="layout-equal-distance-heading" maxWidth="xl">
@@ -17,60 +330,124 @@ export const equallyFarFromBothEndsBlocks: ReactElement[] = [
         <Block id="equal-distance-setup" padding="sm">
             <EditableParagraph id="para-equal-distance-setup" blockId="equal-distance-setup">
                 Take a line segment with ends A and B, and hunt for a point that is exactly as far
-                from A as it is from B. The midpoint is the obvious answer. It is not the only one,
-                and the others are what make the whole construction work.
+                from A as it is from B. Drag the teal dot below, and whenever its{" "}
+                <InlineLinkedHighlight
+                    varName="equalDistanceHighlight"
+                    highlightId="distanceToA"
+                    {...linkedHighlightPropsFromDefinition(getVariableInfo('equalDistanceHighlight'))}
+                >
+                    distance to A
+                </InlineLinkedHighlight>{" "}
+                matches its{" "}
+                <InlineLinkedHighlight
+                    varName="equalDistanceHighlight"
+                    highlightId="distanceToB"
+                    {...linkedHighlightPropsFromDefinition(getVariableInfo('equalDistanceHighlight'))}
+                >
+                    distance to B
+                </InlineLinkedHighlight>
+                , it leaves a pencil mark behind. Collect half a dozen marks and see what shape they
+                make.
             </EditableParagraph>
         </Block>
     </StackLayout>,
 
     <StackLayout key="layout-equal-distance-visual" maxWidth="xl">
-        <Block id="equal-distance-visual">
-            <VisualOptionCards
-                blockId="equal-distance-visual"
-                cards={[
-                    {
-                        id: "equal-distance-trail",
-                        title: "A dot above a line segment that leaves a mark whenever it is equally far from both ends",
-                        looks: "Imagine a short line across the page with A marked at one end and B at the other. A third dot floats above them, joined to each end by a straight rod, and each rod has its length written beside it. Whenever the two lengths match, the dot leaves a small permanent mark behind.",
-                        manipulate: "Drag the floating dot around, find the places where the two lengths match, and keep going until the marks build up into a shape",
-                        reveals: "All the points that are equally far from both ends lie on one straight line, and that line crosses the segment at a right angle.",
-                        paradigm: "constructivist",
-                        recommended: true,
-                    },
-                    {
-                        id: "equal-distance-guess-line",
-                        title: "A faint straight line students place across a segment before the distances are checked",
-                        looks: "Imagine a line segment with ends A and B, and a faint straight line lying loose on top of the page that can be slid and tilted anywhere. Once it is placed, three test dots ride along it, and each one shows its distance to A beside its distance to B.",
-                        manipulate: "Place the faint line where they think every point on it is equally far from both ends, then send the test dots along it to check",
-                        reveals: "A line through the middle is not enough. Tilt it even slightly and the pairs of distances stop matching.",
-                        targetsMisconception: "Students think any line through the midpoint is the perpendicular bisector",
-                        paradigm: "prediction",
-                    },
-                    {
-                        id: "equal-distance-bars",
-                        title: "A dot dragged near a segment, with two bars showing its distance to each end",
-                        looks: "Imagine a segment with A and B and a dot that can be dragged anywhere on the page. Beside the drawing stand two bars, one for the distance to A and one for the distance to B, and they grow and shrink as the dot moves, going level only at certain places.",
-                        manipulate: "Drag the dot around the page and hunt for every position where the two bars are exactly level",
-                        reveals: "Equal distance to both ends is a strict test, and the positions that pass it form a straight line rather than a scattered cloud.",
-                        paradigm: "comparison",
-                        secondView: {
-                            shows: "Two bars, the distance from the dot to A and the distance from the dot to B",
-                            role: "complementary",
-                            syncedBy: "the dragged point position, plus a shared hover highlight linking each bar to its rod in the drawing",
-                        },
-                    },
-                ]}
-            />
+        <Block id="equal-distance-visual" padding="sm" hasVisualization>
+            <EqualDistanceFigure />
         </Block>
     </StackLayout>,
 
     <StackLayout key="layout-equal-distance-insight" maxWidth="xl">
         <Block id="equal-distance-insight" padding="sm">
             <EditableParagraph id="para-equal-distance-insight" blockId="equal-distance-insight">
-                Those points all sit on one straight line, and that line meets AB square on. This is
-                the perpendicular bisector: bisector because it cuts AB into two equal halves,
-                perpendicular because it crosses at a right angle. So why does a pair of compasses
-                find it so easily?
+                The marks all sit on one straight line, and that line meets AB square on. This is the
+                perpendicular bisector: bisector because it cuts AB into two equal halves,
+                perpendicular because it crosses at a right angle. Stretch AB to{" "}
+                <InlineScrubbleNumber
+                    varName="equalDistanceSegmentLength"
+                    {...numberPropsFromDefinition(getVariableInfo('equalDistanceSegmentLength'))}
+                    formatValue={(value: number) => `${value} cm`}
+                />{" "}
+                and a fresh page of marks lines up the very same way.
+            </EditableParagraph>
+        </Block>
+    </StackLayout>,
+
+    <StackLayout key="layout-equal-distance-question-line" maxWidth="xl">
+        <Block id="equal-distance-question-line" padding="md">
+            <EditableParagraph id="para-equal-distance-question-line" blockId="equal-distance-question-line">
+                Here is the same test on paper, with no dot to drag. One point sits 8 cm from A and
+                8 cm from B. A second point sits 3.5 cm from A and 3.5 cm from B. The straight line
+                drawn through those two points is the{" "}
+                <InlineFeedback
+                    varName="answer_equal_distance_line"
+                    correctValue="perpendicular bisector"
+                    position="terminal"
+                    successMessage="— exactly. Both points pass the equal-distance test, and every point that passes it lands on that one line"
+                    failureMessage="— not quite."
+                    hint="Both points are the same distance from A as from B, just like every pencil mark the dot left behind"
+                    reviewBlockId="equal-distance-visual"
+                    reviewLabel="Look again at the marks"
+                >
+                    <InlineClozeChoice
+                        varName="answer_equal_distance_line"
+                        correctAnswer="perpendicular bisector"
+                        options={["perpendicular bisector", "midpoint", "longest side", "parallel line"]}
+                        {...choicePropsFromDefinition(getVariableInfo('answer_equal_distance_line'))}
+                    />
+                </InlineFeedback>{" "}
+                of AB.
+            </EditableParagraph>
+        </Block>
+    </StackLayout>,
+
+    <StackLayout key="layout-equal-distance-question-tilted" maxWidth="xl">
+        <Block id="equal-distance-question-tilted" padding="md">
+            <EditableParagraph id="para-equal-distance-question-tilted" blockId="equal-distance-question-tilted">
+                Now suppose a line is drawn through the middle of AB but tilted, so it is not square
+                to it. Is every point on that tilted line the same distance from A as from B?{" "}
+                <InlineFeedback
+                    varName="answer_equal_distance_tilted"
+                    correctValue="no, only the middle one"
+                    position="standalone"
+                    successMessage="Exactly. The middle point passes the test, but slide either way along a tilted line and the two lengths drift apart"
+                    failureMessage="Not quite!"
+                    hint="Passing through the middle is only one of the two things the bisector does"
+                    visualizationHint={{
+                        blockId: "equal-distance-visual",
+                        hintKey: "feedback-equal-distance-tilted",
+                        label: "Discover it yourself",
+                        steps: [
+                            {
+                                gesture: "drag-horizontal",
+                                label: "Drag the teal dot left until the two lengths match",
+                                position: { x: "62%", y: "38%" },
+                                dragPath: { type: "line", startOffset: { x: 26, y: 0 }, endOffset: { x: -26, y: 0 } },
+                                completionVar: "equalDistancePointX",
+                                completionValue: 0,
+                                completionTolerance: 0.4,
+                            },
+                            {
+                                gesture: "drag-vertical",
+                                label: "Now drag straight upward, keeping the lengths matched — watch where the marks go",
+                                position: { x: "50%", y: "30%" },
+                                dragPath: { type: "line", startOffset: { x: 0, y: 22 }, endOffset: { x: 0, y: -26 } },
+                                completionVar: "equalDistancePointY",
+                                completionValue: 3,
+                                completionTolerance: 1.2,
+                            },
+                        ],
+                        resetVars: { equalDistancePointX: DEFAULT_POINT_X, equalDistancePointY: DEFAULT_POINT_Y },
+                    }}
+                >
+                    <InlineClozeChoice
+                        varName="answer_equal_distance_tilted"
+                        correctAnswer="no, only the middle one"
+                        options={["no, only the middle one", "yes, all of them", "no, none of them"]}
+                        {...choicePropsFromDefinition(getVariableInfo('answer_equal_distance_tilted'))}
+                    />
+                </InlineFeedback>
             </EditableParagraph>
         </Block>
     </StackLayout>,

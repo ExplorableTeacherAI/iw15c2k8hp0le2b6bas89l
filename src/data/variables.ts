@@ -82,6 +82,78 @@ export interface VariableDefinition {
  */
 export const variableDefinitions: Record<string, VariableDefinition> = {
     // ========================================
+    // SECTION: The Point That Is Equally Far From Both Ends
+    // ========================================
+
+    equalDistancePointX: {
+        defaultValue: 2.6,
+        type: 'number',
+        label: 'Roaming point, across',
+        description: 'Horizontal position of the draggable point, measured from the middle of AB',
+        unit: 'cm',
+        min: -5.6,
+        max: 5.6,
+        step: 0.1,
+        color: '#62D0AD',
+    },
+    equalDistancePointY: {
+        defaultValue: 1.8,
+        type: 'number',
+        label: 'Roaming point, up',
+        description: 'Vertical position of the draggable point above the line AB',
+        unit: 'cm',
+        min: -2.3,
+        max: 3.2,
+        step: 0.1,
+        color: '#62D0AD',
+    },
+    equalDistanceSegmentLength: {
+        defaultValue: 6,
+        type: 'number',
+        label: 'Length of AB',
+        description: 'Length of the line segment AB in the equal-distance figure',
+        unit: 'cm',
+        min: 4,
+        max: 9,
+        step: 1,
+        color: '#8E90F5',
+    },
+    equalDistanceMarks: {
+        defaultValue: [],
+        type: 'array',
+        label: 'Pencil marks',
+        description: 'Flat list of x, y pairs where the point was equally far from A and B',
+    },
+    equalDistanceHighlight: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Equal-distance highlight',
+        description: 'Which measured distance is currently highlighted: distanceToA or distanceToB',
+        color: '#62D0AD',
+        bgColor: 'rgba(98, 208, 173, 0.22)',
+    },
+    answer_equal_distance_line: {
+        defaultValue: '',
+        type: 'select',
+        label: 'Answer: line through two equal-distance points',
+        description: 'Student answer naming the line through two points equally far from A and B',
+        placeholder: '???',
+        correctAnswer: 'perpendicular bisector',
+        options: ['perpendicular bisector', 'midpoint', 'longest side', 'parallel line'],
+        color: '#8E90F5',
+    },
+    answer_equal_distance_tilted: {
+        defaultValue: '',
+        type: 'select',
+        label: 'Answer: tilted line through the midpoint',
+        description: 'Student answer about points on a tilted line through the midpoint of AB',
+        placeholder: '???',
+        correctAnswer: 'no, only the middle one',
+        options: ['no, only the middle one', 'yes, all of them', 'no, none of them'],
+        color: '#8E90F5',
+    },
+
+    // ========================================
     // ADD YOUR VARIABLES HERE
     // ========================================
 

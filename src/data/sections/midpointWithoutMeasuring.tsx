@@ -512,24 +512,7 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
 
     <StackLayout key="layout-midpoint-question-half" maxWidth="xl">
         <Block id="midpoint-question-half" padding="md">
-            <EditableParagraph id="para-midpoint-question-half" blockId="midpoint-question-half">
-                A different segment measures 9.5 cm. Its exact middle sits at{" "}
-                <InlineFeedback
-                    varName="answer_midpoint_exact_half"
-                    correctValue={["4.75", "4.75 cm", "4,75"]}
-                    position="terminal"
-                    successMessage="— yes, and 4.75 cm falls halfway between the 4.7 and 4.8 marks, so a ruler has to round it"
-                    failureMessage="— not quite."
-                    hint="Halve 9.5 and see whether the answer lands on a millimetre mark"
-                >
-                    <InlineClozeInput
-                        varName="answer_midpoint_exact_half"
-                        correctAnswer={["4.75", "4.75 cm", "4,75"]}
-                        {...clozePropsFromDefinition(getVariableInfo('answer_midpoint_exact_half'))}
-                    />
-                </InlineFeedback>{" "}
-                cm, a reading no millimetre mark can give you.
-            </EditableParagraph>
+            <EditableParagraph id="para-midpoint-question-half" blockId="midpoint-question-half">A different segment measures 9.5 cm. Its exact middle sits at <InlineFeedback varName={"answer_midpoint_exact_half"} correctValue={["4.75", "4.75 cm", "4,75"]} caseSensitive={false} position={"terminal"} successMessage={"— yes, and 4.75 cm falls halfway between the 4.7 and 4.8 marks, so a ruler has to round it"} failureMessage={"— not quite."} hint={"Halve 9.5 and see whether the answer lands on a millimetre mark"} reviewLabel={"Review this concept"}><InlineClozeInput varName={"answer_midpoint_exact_half"} correctAnswer={"4.75 | 4.75 cm | 4,75"} placeholder={"???"} color={"#E53935"} bgColor={"rgba(59, 130, 246, 0.35)"} caseSensitive={false} id={"cloze-1787714988109-m71er"} /></InlineFeedback> cm, a reading no millimetre mark can give you.</EditableParagraph>
         </Block>
     </StackLayout>,
 

@@ -46,7 +46,7 @@ export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
 
     <StackLayout key="layout-block-1787714885544" maxWidth="xl">
         <Block id="block-1787714885544" padding="sm">
-            <EditableParagraph id="para-block-1787714885544" blockId="block-1787714885544"></EditableParagraph>
+            <EditableParagraph id="para-block-1787714885544" blockId="block-1787714885544">{""}</EditableParagraph>
         </Block>
     </StackLayout>,
 ];

@@ -212,6 +212,64 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
     },
 
     // ========================================
+    // SECTION: Finding the Midpoint Without Measuring
+    // ========================================
+
+    midpointRulerReading: {
+        defaultValue: 3.4,
+        type: 'number',
+        label: 'Ruler mark',
+        description: 'Where the student places the ruler-read midpoint along AB',
+        unit: 'cm',
+        min: 2.5,
+        max: 4.8,
+        step: 0.1,
+        color: '#F7B23B',
+    },
+    midpointLensPosition: {
+        defaultValue: 2.9,
+        type: 'number',
+        label: 'Magnifier position',
+        description: 'Where along AB the magnifying lens is looking',
+        unit: 'cm',
+        min: 0.4,
+        max: 6.9,
+        step: 0.05,
+        color: '#64748B',
+    },
+    midpointHighlight: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Midpoint figure highlight',
+        description: 'Which mark is highlighted: rulerMark or constructedMidpoint',
+        color: '#62D0AD',
+        bgColor: 'rgba(98, 208, 173, 0.22)',
+    },
+    answer_midpoint_exact_half: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Answer: exact midpoint of a 9.5 cm segment',
+        description: 'Student answer for half of 9.5 cm',
+        placeholder: '???',
+        correctAnswer: ['4.75', '4.75 cm', '4,75'],
+        color: '#8E90F5',
+    },
+    answer_midpoint_why_exact: {
+        defaultValue: '',
+        type: 'select',
+        label: 'Answer: why the constructed midpoint is exact',
+        description: 'Student answer explaining why the construction beats the ruler',
+        placeholder: '???',
+        correctAnswer: 'it comes from two equal distances, not from reading a scale',
+        options: [
+            'it comes from two equal distances, not from reading a scale',
+            'a pair of compasses is a more accurate tool than a ruler',
+            'the arcs make the segment easier to halve',
+        ],
+        color: '#8E90F5',
+    },
+
+    // ========================================
     // ADD YOUR VARIABLES HERE
     // ========================================
 

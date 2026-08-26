@@ -1,4 +1,397 @@
 {
-  "version": 2,
-  "blockIds": []
+  "version": 3,
+  "blockIds": [
+    "orient-title",
+    "orient-hook",
+    "orient-promise",
+    "orient-prior-knowledge",
+    "block-1787714885544",
+    "equal-distance-heading",
+    "equal-distance-setup",
+    "equal-distance-visual",
+    "equal-distance-insight",
+    "equal-distance-question-line",
+    "equal-distance-question-tilted",
+    "fixed-opening-heading",
+    "fixed-opening-setup",
+    "fixed-opening-visual",
+    "fixed-opening-insight",
+    "fixed-opening-question-equal",
+    "fixed-opening-question-arcs",
+    "midpoint-heading",
+    "midpoint-setup",
+    "midpoint-visual",
+    "midpoint-insight",
+    "midpoint-question-half",
+    "midpoint-question-why",
+    "perpendiculars-heading",
+    "perpendiculars-setup",
+    "perpendiculars-visual",
+    "perpendiculars-insight",
+    "wrap-up-heading",
+    "wrap-up-idea",
+    "wrap-up-next"
+  ],
+  "rows": [
+    {
+      "id": "layout-orient-title",
+      "type": "stack",
+      "columns": [
+        [
+          "orient-title"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-orient-hook",
+      "type": "stack",
+      "columns": [
+        [
+          "orient-hook"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-orient-promise",
+      "type": "stack",
+      "columns": [
+        [
+          "orient-promise"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-orient-prior-knowledge",
+      "type": "stack",
+      "columns": [
+        [
+          "orient-prior-knowledge"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-block-1787714885544",
+      "type": "stack",
+      "columns": [
+        [
+          "block-1787714885544"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-equal-distance-heading",
+      "type": "stack",
+      "columns": [
+        [
+          "equal-distance-heading"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-equal-distance-setup",
+      "type": "stack",
+      "columns": [
+        [
+          "equal-distance-setup"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-equal-distance-visual",
+      "type": "stack",
+      "columns": [
+        [
+          "equal-distance-visual"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-equal-distance-insight",
+      "type": "stack",
+      "columns": [
+        [
+          "equal-distance-insight"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-equal-distance-question-line",
+      "type": "stack",
+      "columns": [
+        [
+          "equal-distance-question-line"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-equal-distance-question-tilted",
+      "type": "stack",
+      "columns": [
+        [
+          "equal-distance-question-tilted"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-fixed-opening-heading",
+      "type": "stack",
+      "columns": [
+        [
+          "fixed-opening-heading"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-fixed-opening-setup",
+      "type": "stack",
+      "columns": [
+        [
+          "fixed-opening-setup"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-fixed-opening-visual",
+      "type": "stack",
+      "columns": [
+        [
+          "fixed-opening-visual"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-fixed-opening-insight",
+      "type": "stack",
+      "columns": [
+        [
+          "fixed-opening-insight"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-fixed-opening-question-equal",
+      "type": "stack",
+      "columns": [
+        [
+          "fixed-opening-question-equal"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-fixed-opening-question-arcs",
+      "type": "stack",
+      "columns": [
+        [
+          "fixed-opening-question-arcs"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-midpoint-heading",
+      "type": "stack",
+      "columns": [
+        [
+          "midpoint-heading"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-midpoint-setup",
+      "type": "stack",
+      "columns": [
+        [
+          "midpoint-setup"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-midpoint-visual",
+      "type": "stack",
+      "columns": [
+        [
+          "midpoint-visual"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-midpoint-insight",
+      "type": "stack",
+      "columns": [
+        [
+          "midpoint-insight"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-midpoint-question-half",
+      "type": "stack",
+      "columns": [
+        [
+          "midpoint-question-half"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-midpoint-question-why",
+      "type": "stack",
+      "columns": [
+        [
+          "midpoint-question-why"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-perpendiculars-heading",
+      "type": "stack",
+      "columns": [
+        [
+          "perpendiculars-heading"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-perpendiculars-setup",
+      "type": "stack",
+      "columns": [
+        [
+          "perpendiculars-setup"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-perpendiculars-visual",
+      "type": "stack",
+      "columns": [
+        [
+          "perpendiculars-visual"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-perpendiculars-insight",
+      "type": "stack",
+      "columns": [
+        [
+          "perpendiculars-insight"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-wrap-up-heading",
+      "type": "stack",
+      "columns": [
+        [
+          "wrap-up-heading"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-wrap-up-idea",
+      "type": "stack",
+      "columns": [
+        [
+          "wrap-up-idea"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    },
+    {
+      "id": "layout-wrap-up-next",
+      "type": "stack",
+      "columns": [
+        [
+          "wrap-up-next"
+        ]
+      ],
+      "props": {
+        "maxWidth": "xl"
+      }
+    }
+  ]
 }

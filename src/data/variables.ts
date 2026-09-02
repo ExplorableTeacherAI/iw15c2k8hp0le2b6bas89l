@@ -94,6 +94,61 @@ export interface VariableDefinition {
  */
 export const variableDefinitions: Record<string, VariableDefinition> = {
     // ========================================
+    // LESSON COLOUR ANCHORS — vocabulary that carries a hue in the prose
+    // Each one exists so a word in the text can be painted the exact colour
+    // the figures use for that same thing.
+    // ========================================
+
+    keyPerpendicularBisector: {
+        defaultValue: '',
+        type: 'spotColor',
+        label: 'Colour: perpendicular bisector',
+        description: 'Rose, the colour every figure draws the perpendicular bisector and its right angle in',
+        color: '#F8A0CD',
+        bgColor: 'rgba(248, 160, 205, 0.22)',
+    },
+    keyMidpoint: {
+        defaultValue: '',
+        type: 'spotColor',
+        label: 'Colour: the point a construction produces',
+        description: 'Sky, the colour of the midpoint M and the foot F',
+        color: '#62CCF9',
+        bgColor: 'rgba(98, 204, 249, 0.22)',
+    },
+    keyCompassOpening: {
+        defaultValue: '',
+        type: 'spotColor',
+        label: 'Colour: compass opening',
+        description: 'Teal, the colour of whatever the student drags and the opening it sets',
+        color: '#62D0AD',
+        bgColor: 'rgba(98, 208, 173, 0.22)',
+    },
+    keyDistanceFromA: {
+        defaultValue: '',
+        type: 'spotColor',
+        label: 'Colour: measured from A',
+        description: 'Indigo, the colour of every length and arc measured from the left end',
+        color: '#8E90F5',
+        bgColor: 'rgba(142, 144, 245, 0.22)',
+    },
+    keyDistanceFromB: {
+        defaultValue: '',
+        type: 'spotColor',
+        label: 'Colour: measured from B',
+        description: 'Violet, the colour of every length and arc measured from the right end',
+        color: '#AC8BF9',
+        bgColor: 'rgba(172, 139, 249, 0.22)',
+    },
+    keySegmentLength: {
+        defaultValue: '',
+        type: 'spotColor',
+        label: 'Colour: a length along the line',
+        description: 'Sage, the colour of the segment AB and any distance measured along it',
+        color: '#A8D5A2',
+        bgColor: 'rgba(168, 213, 162, 0.22)',
+    },
+
+    // ========================================
     // SECTION: The Point That Is Equally Far From Both Ends
     // ========================================
 

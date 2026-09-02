@@ -1,7 +1,14 @@
 import { type ReactElement } from "react";
 import { StackLayout } from "@/components/layouts";
 import { Block } from "@/components/templates";
-import { EditableH1, EditableParagraph, InlineTooltip } from "@/components/atoms";
+import {
+    EditableH1,
+    EditableParagraph,
+    InlineFormula,
+    InlineSpotColor,
+    InlineTooltip,
+} from "@/components/atoms";
+import { getVariableInfo, spotColorPropsFromDefinition } from "../variables";
 
 export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
     <StackLayout key="layout-orient-title" maxWidth="xl">
@@ -15,10 +22,23 @@ export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
     <StackLayout key="layout-orient-hook" maxWidth="xl">
         <Block id="orient-hook" padding="sm">
             <EditableParagraph id="para-orient-hook" blockId="orient-hook">
-                Before a badminton court can be painted, someone has to find the exact centre of the
-                baseline and run a line straight across the court from it. No tape measure is trusted
-                with that job. The line has to be exactly halfway along and exactly square to the
-                baseline, and a reading of 6.7 metres is never exactly anything.
+                Before a badminton court can be painted, someone has to find the{" "}
+                <InlineSpotColor
+                    varName="keyMidpoint"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keyMidpoint'))}
+                >
+                    exact centre
+                </InlineSpotColor>{" "}
+                of the baseline and run a{" "}
+                <InlineSpotColor
+                    varName="keyPerpendicularBisector"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keyPerpendicularBisector'))}
+                >
+                    line straight across
+                </InlineSpotColor>{" "}
+                the court from it. No tape measure is trusted with that job. The line has to be
+                exactly halfway along and exactly square to the baseline, and a reading of 6.7
+                metres is never exactly anything.
             </EditableParagraph>
         </Block>
     </StackLayout>,
@@ -33,9 +53,21 @@ export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
                 >
                     straightedge
                 </InlineTooltip>
-                . By the end you will be able to cut any line segment exactly in half, find its
-                midpoint, and drop a perpendicular onto a line from any point you choose, without
-                measuring anything.
+                . By the end you will be able to cut any line segment exactly in half, find its{" "}
+                <InlineSpotColor
+                    varName="keyMidpoint"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keyMidpoint'))}
+                >
+                    midpoint
+                </InlineSpotColor>
+                , and drop a{" "}
+                <InlineTooltip
+                    id="tooltip-orient-perpendicular"
+                    tooltip="A perpendicular is a line that meets another line at a right angle, exactly 90 degrees."
+                >
+                    perpendicular
+                </InlineTooltip>{" "}
+                onto a line from any point you choose, without measuring anything.
             </EditableParagraph>
         </Block>
     </StackLayout>,
@@ -43,9 +75,21 @@ export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
     <StackLayout key="layout-orient-prior-knowledge" maxWidth="xl">
         <Block id="orient-prior-knowledge" padding="sm">
             <EditableParagraph id="para-orient-prior-knowledge" blockId="orient-prior-knowledge">
-                You already know that every point on a circle sits the same distance from its centre,
-                you can swing an arc of any size you choose, and you can spot a right angle. That is
-                everything these constructions need.
+                You already know that every point on a circle sits the same distance from its
+                centre, you can swing an arc of any{" "}
+                <InlineSpotColor
+                    varName="keyCompassOpening"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keyCompassOpening'))}
+                >
+                    opening
+                </InlineSpotColor>{" "}
+                you choose, and you can spot a right angle. That is everything these constructions
+                need, because each one comes down to a single demand:{" "}
+                <InlineFormula
+                    latex="\clr{fromA}{PA} = \clr{fromB}{PB}"
+                    colorMap={{ fromA: "#8E90F5", fromB: "#AC8BF9" }}
+                />
+                .
             </EditableParagraph>
         </Block>
     </StackLayout>,

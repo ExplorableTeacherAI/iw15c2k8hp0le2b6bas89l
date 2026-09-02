@@ -10,6 +10,7 @@ import {
     InlineScrubbleNumber,
     InlineSpotColor,
     InlineTooltip,
+    InlineTrigger,
     InteractionHintSequence,
 } from "@/components/atoms";
 import { Figure, FormulaBlock } from "@/components/molecules";
@@ -383,8 +384,20 @@ export const equallyFarFromBothEndsBlocks: ReactElement[] = [
     <StackLayout key="layout-equal-distance-formula" maxWidth="xl">
         <Block id="equal-distance-formula" padding="lg">
             <FormulaBlock
-                latex="\clr{sideA}{PA} = \val{equalDistanceToA}\,\text{cm} \quad \clr{sideB}{PB} = \val{equalDistanceToB}\,\text{cm} \quad \clr{segment}{AB} = \scrub{equalDistanceSegmentLength}\,\text{cm}"
-                colorMap={{ sideA: "#8E90F5", sideB: "#AC8BF9", segment: "#A8D5A2" }}
+                latex="\highlight{distanceToA}{PA} = \val{equalDistanceToA}\,\text{cm} \quad \highlight{distanceToB}{PB} = \val{equalDistanceToB}\,\text{cm} \quad \clr{segment}{AB} = \scrub{equalDistanceSegmentLength}\,\text{cm}"
+                colorMap={{ segment: "#A8D5A2" }}
+                linkedHighlights={{
+                    distanceToA: {
+                        varName: "equalDistanceHighlight",
+                        color: "#8E90F5",
+                        bgColor: "rgba(142, 144, 245, 0.22)",
+                    },
+                    distanceToB: {
+                        varName: "equalDistanceHighlight",
+                        color: "#AC8BF9",
+                        bgColor: "rgba(172, 139, 249, 0.22)",
+                    },
+                }}
                 variables={{
                     ...scrubVarsFromDefinitions(['equalDistanceSegmentLength', 'equalDistanceToA', 'equalDistanceToB']),
                     equalDistanceToA: { color: "#8E90F5", step: 0.1, formatValue: (value: number) => value.toFixed(1) },
@@ -432,7 +445,11 @@ export const equallyFarFromBothEndsBlocks: ReactElement[] = [
                     {...numberPropsFromDefinition(getVariableInfo('equalDistanceSegmentLength'))}
                     formatValue={(value: number) => `${value} cm`}
                 />{" "}
-                and a fresh page of marks lines up the very same way.
+                and a fresh page of marks lines up the very same way, always running{" "}
+                <InlineTrigger varName="equalDistancePointX" value={0} icon="zap">
+                    straight above the middle
+                </InlineTrigger>
+                .
             </EditableParagraph>
         </Block>
     </StackLayout>,

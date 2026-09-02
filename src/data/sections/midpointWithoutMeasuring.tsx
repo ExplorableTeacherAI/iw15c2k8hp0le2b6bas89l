@@ -415,8 +415,26 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                 </InlineTooltip>{" "}
                 that is nearly right, and nearly is fine for a shelf. It is useless in geometry,
                 where the next line of a proof leans on that point being exact. Step through the
-                construction below, then drag the teal crossing point up and down to open both
-                compasses wider at once.
+                construction below: one{" "}
+                <InlineLinkedHighlight
+                    varName="midpointHighlight"
+                    highlightId="arcsFromA"
+                    color="#8E90F5"
+                    bgColor="rgba(142, 144, 245, 0.22)"
+                >
+                    indigo pair of arcs from A
+                </InlineLinkedHighlight>
+                , the same opening swung again as a{" "}
+                <InlineLinkedHighlight
+                    varName="midpointHighlight"
+                    highlightId="arcsFromB"
+                    color="#AC8BF9"
+                    bgColor="rgba(172, 139, 249, 0.22)"
+                >
+                    violet pair from B
+                </InlineLinkedHighlight>
+                , then drag the teal crossing point up and down to open both compasses wider at
+                once.
             </EditableParagraph>
         </Block>
     </StackLayout>,
@@ -430,8 +448,20 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
     <StackLayout key="layout-midpoint-formula" maxWidth="xl">
         <Block id="midpoint-formula" padding="lg">
             <FormulaBlock
-                latex="\clr{opening}{d} = \sqrt{3.65^2 + \scrub{midpointCrossingHeight}^2} = \val{midpointOpening}\,\text{cm} \quad \clr{midpoint}{AM} = \clr{midpoint}{MB}"
+                latex="\highlight{opening}{d} = \sqrt{\textcolor{#A8D5A2}{3.65}^2 + \scrub{midpointCrossingHeight}^2} = \val{midpointOpening}\,\text{cm} \quad \highlight{midpoint}{AM} = \highlight{midpoint}{MB}"
                 colorMap={{ opening: "#62D0AD", midpoint: "#62CCF9" }}
+                linkedHighlights={{
+                    opening: {
+                        varName: "midpointHighlight",
+                        color: "#62D0AD",
+                        bgColor: "rgba(98, 208, 173, 0.22)",
+                    },
+                    midpoint: {
+                        varName: "midpointHighlight",
+                        color: "#62CCF9",
+                        bgColor: "rgba(98, 204, 249, 0.22)",
+                    },
+                }}
                 variables={{
                     ...scrubVarsFromDefinitions(['midpointCrossingHeight', 'midpointOpening']),
                     midpointCrossingHeight: { min: 1.2, max: 2.8, step: 0.05, color: "#62D0AD", formatValue: (value: number) => value.toFixed(2) },
@@ -461,7 +491,14 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                 >
                     bisector
                 </InlineLinkedHighlight>{" "}
-                crosses AB, at 3.65 cm along a 7.3 cm segment. Push the crossings out to{" "}
+                crosses AB, at{" "}
+                <InlineSpotColor
+                    varName="keySegmentLength"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keySegmentLength'))}
+                >
+                    3.65 cm along a 7.3 cm segment
+                </InlineSpotColor>
+                . Push the crossings out to{" "}
                 <InlineScrubbleNumber
                     varName="midpointCrossingHeight"
                     {...numberPropsFromDefinition(getVariableInfo('midpointCrossingHeight'))}

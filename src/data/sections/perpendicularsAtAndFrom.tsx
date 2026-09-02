@@ -24,6 +24,7 @@ import {
     clozePropsFromDefinition,
     linkedHighlightPropsFromDefinition,
     spotColorPropsFromDefinition,
+    scrubVarsFromDefinitions,
 } from "../variables";
 
 // ── View geometry ────────────────────────────────────────────────────────────
@@ -390,9 +391,21 @@ export const perpendicularsAtAndFromBlocks: ReactElement[] = [
     <StackLayout key="layout-perpendiculars-formula" maxWidth="xl">
         <Block id="perpendiculars-formula" padding="lg">
             <FormulaBlock
-                latex="\clr{markLeft}{PM_1} = \clr{markRight}{PM_2} = \sqrt{\scrub{perpendicularPointHeight}^2 + 1.6^2} = \val{perpendicularOpening}\,\text{cm}"
-                colorMap={{ markLeft: "#8E90F5", markRight: "#AC8BF9" }}
+                latex="\highlight{marksOnLine}{PM_1 = PM_2} = \sqrt{\scrub{perpendicularPointHeight}^2 + \textcolor{#A8D5A2}{1.6}^2} = \highlight{arcFromPoint}{d} = \val{perpendicularOpening}\,\text{cm}"
+                linkedHighlights={{
+                    marksOnLine: {
+                        varName: "perpendicularHighlight",
+                        color: "#8E90F5",
+                        bgColor: "rgba(142, 144, 245, 0.22)",
+                    },
+                    arcFromPoint: {
+                        varName: "perpendicularHighlight",
+                        color: "#62D0AD",
+                        bgColor: "rgba(98, 208, 173, 0.22)",
+                    },
+                }}
                 variables={{
+                    ...scrubVarsFromDefinitions(['perpendicularPointHeight', 'perpendicularOpening']),
                     perpendicularPointHeight: { min: 0, max: 3, step: 0.1, color: "#62D0AD", formatValue: (value: number) => value.toFixed(1) },
                     perpendicularOpening: { color: "#62D0AD", step: 0.01, formatValue: (value: number) => value.toFixed(2) },
                 }}
@@ -416,8 +429,29 @@ export const perpendicularsAtAndFromBlocks: ReactElement[] = [
                 >
                     opening from P
                 </InlineSpotColor>{" "}
-                reaches further, yet the indigo PM₁ and the violet PM₂ stay equal and the corner
-                stays square. Put{" "}
+                reaches further, yet the{" "}
+                <InlineSpotColor
+                    varName="keyDistanceFromA"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keyDistanceFromA'))}
+                >
+                    indigo PM₁
+                </InlineSpotColor>{" "}
+                and the{" "}
+                <InlineSpotColor
+                    varName="keyDistanceFromB"
+                    {...spotColorPropsFromDefinition(getVariableInfo('keyDistanceFromB'))}
+                >
+                    violet PM₂
+                </InlineSpotColor>{" "}
+                stay equal and the{" "}
+                <InlineLinkedHighlight
+                    varName="perpendicularHighlight"
+                    highlightId="perpendicular"
+                    {...linkedHighlightPropsFromDefinition(getVariableInfo('perpendicularHighlight'))}
+                >
+                    corner stays square
+                </InlineLinkedHighlight>
+                . Put{" "}
                 <InlineTrigger varName="perpendicularPointHeight" value={0} icon="refresh">
                     P back down on the line
                 </InlineTrigger>{" "}

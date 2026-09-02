@@ -415,8 +415,20 @@ export const fixedCompassOpeningBlocks: ReactElement[] = [
     <StackLayout key="layout-fixed-opening-formula" maxWidth="xl">
         <Block id="fixed-opening-formula" padding="lg">
             <FormulaBlock
-                latex="\clr{radiusA}{r_A} = \scrub{fixedOpeningRadiusA}\,\text{cm} \quad \clr{radiusB}{r_B} = \scrub{fixedOpeningRadiusB}\,\text{cm}"
-                colorMap={{ radiusA: "#8E90F5", radiusB: "#AC8BF9" }}
+                latex="\highlight{arcFromA}{r_A} = \scrub{fixedOpeningRadiusA}\,\text{cm} \quad \highlight{arcFromB}{r_B} = \scrub{fixedOpeningRadiusB}\,\text{cm}"
+                colorMap={{ arcFromA: "#8E90F5", arcFromB: "#AC8BF9" }}
+                linkedHighlights={{
+                    arcFromA: {
+                        varName: "fixedOpeningHighlight",
+                        color: "#8E90F5",
+                        bgColor: "rgba(142, 144, 245, 0.22)",
+                    },
+                    arcFromB: {
+                        varName: "fixedOpeningHighlight",
+                        color: "#AC8BF9",
+                        bgColor: "rgba(172, 139, 249, 0.22)",
+                    },
+                }}
                 variables={scrubVarsFromDefinitions(['fixedOpeningRadiusA', 'fixedOpeningRadiusB'])}
             />
         </Block>
@@ -456,8 +468,19 @@ export const fixedCompassOpeningBlocks: ReactElement[] = [
     <StackLayout key="layout-fixed-opening-condition" maxWidth="xl">
         <Block id="fixed-opening-condition" padding="lg">
             <FormulaBlock
-                latex="\text{line lands on the middle} \iff \clr{radiusA}{r_A} \; \choice{answer_fixed_opening_relation} \; \clr{radiusB}{r_B}"
-                colorMap={{ radiusA: "#8E90F5", radiusB: "#AC8BF9" }}
+                latex="\textcolor{#F8A0CD}{\text{the pink line lands on the middle}} \iff \highlight{arcFromA}{r_A} \; \choice{answer_fixed_opening_relation} \; \highlight{arcFromB}{r_B}"
+                linkedHighlights={{
+                    arcFromA: {
+                        varName: "fixedOpeningHighlight",
+                        color: "#8E90F5",
+                        bgColor: "rgba(142, 144, 245, 0.22)",
+                    },
+                    arcFromB: {
+                        varName: "fixedOpeningHighlight",
+                        color: "#AC8BF9",
+                        bgColor: "rgba(172, 139, 249, 0.22)",
+                    },
+                }}
                 clozeChoices={{
                     answer_fixed_opening_relation: {
                         correctAnswer: "=",

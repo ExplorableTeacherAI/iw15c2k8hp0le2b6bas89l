@@ -36,8 +36,12 @@ const X_LIMIT = 5.6;
 const Y_MAX = 3.2;
 const Y_MIN = -2.3;
 
-const MATCH_TOLERANCE = 0.12; // cm difference counted as "equal"
-const MARK_SPACING = 0.3; // cm — how far apart new pencil marks must be
+/** How close, in cm, the dot has to come to the exact equal-distance line before it
+ *  locks onto it. Inside this band PA and PB are made exactly equal, so every pencil
+ *  mark lands on one perfectly straight line instead of scattering across a band. */
+const SNAP_TO_LINE = 0.28;
+const EQUAL_EPSILON = 0.001; // cm — PA and PB counted as equal once the dot has locked on
+const MARK_SPACING = 0.28; // cm — how far apart new pencil marks must be
 
 const INK = "#334155"; // labels
 const INK_STRUCTURE = "#64748B"; // the segment itself
@@ -86,7 +90,7 @@ function EqualDistanceDrawing() {
     const halfSegment = segmentLength / 2;
     const distanceToA = Math.hypot(pointX + halfSegment, pointY);
     const distanceToB = Math.hypot(pointX - halfSegment, pointY);
-    const isEqual = Math.abs(distanceToA - distanceToB) < MATCH_TOLERANCE;
+    const isEqual = Math.abs(distanceToA - distanceToB) < EQUAL_EPSILON;
 
     // Publish both lengths so the formula below the figure can read them live.
     useEffect(() => {
@@ -102,13 +106,13 @@ function EqualDistanceDrawing() {
         onPointerLeave: () => setVar("equalDistanceHighlight", ""),
     });
 
-    const dropMarkIfEqual = (x: number, y: number) => {
-        if (Math.abs(Math.hypot(x + halfSegment, y) - Math.hypot(x - halfSegment, y)) >= MATCH_TOLERANCE) return;
+    /** Marks are only ever dropped ON the line, so the trail they leave is dead straight. */
+    const dropMarkOnLine = (y: number) => {
         const existing = marksRef.current;
-        for (let index = 0; index < existing.length; index += 2) {
-            if (Math.hypot(existing[index] - x, existing[index + 1] - y) < MARK_SPACING) return;
+        for (let index = 1; index < existing.length; index += 2) {
+            if (Math.abs(existing[index] - y) < MARK_SPACING) return;
         }
-        const updated = [...existing, x, y];
+        const updated = [...existing, 0, y];
         marksRef.current = updated;
         setVar("equalDistanceMarks", updated);
     };
@@ -118,11 +122,15 @@ function EqualDistanceDrawing() {
         const rect = svgRef.current.getBoundingClientRect();
         const rawX = ((event.clientX - rect.left) / rect.width) * VIEW_WIDTH;
         const rawY = ((event.clientY - rect.top) / rect.height) * VIEW_HEIGHT;
-        const nextX = clamp((rawX - ORIGIN_X) / PIXELS_PER_CM, -X_LIMIT, X_LIMIT);
+        const pointerXcm = clamp((rawX - ORIGIN_X) / PIXELS_PER_CM, -X_LIMIT, X_LIMIT);
         const nextY = clamp((ORIGIN_Y - rawY) / PIXELS_PER_CM, Y_MIN, Y_MAX);
+        // Come close enough to the equal-distance line and the dot locks onto it,
+        // so PA and PB are exactly equal rather than nearly equal.
+        const locked = Math.abs(pointerXcm) < SNAP_TO_LINE;
+        const nextX = locked ? 0 : pointerXcm;
         setVar("equalDistancePointX", nextX);
         setVar("equalDistancePointY", nextY);
-        dropMarkIfEqual(nextX, nextY);
+        if (locked) dropMarkOnLine(nextY);
     };
 
     const screenA = { x: toScreenX(-halfSegment), y: toScreenY(0) };
@@ -310,7 +318,7 @@ function EqualDistanceFigure() {
     return (
         <Figure
             id="equal-distance-trail"
-            caption="Drag the teal dot around the page. The indigo rod measures PA, the violet rod measures PB, and whenever the two readings match the dot leaves a pink pencil mark behind."
+            caption="Drag the teal dot around the page. The indigo rod measures PA and the violet rod measures PB, and as soon as the two readings become equal the dot locks onto that spot and leaves a pink pencil mark behind."
             onReset={() => {
                 setVar("equalDistancePointX", DEFAULT_POINT_X);
                 setVar("equalDistancePointY", DEFAULT_POINT_Y);
@@ -369,8 +377,8 @@ export const equallyFarFromBothEndsBlocks: ReactElement[] = [
                 >
                     violet distance to B
                 </InlineLinkedHighlight>
-                , it leaves a pencil mark behind. Collect half a dozen marks and see what shape they
-                make.
+                , the dot locks onto that spot and leaves a pencil mark behind. Collect half a dozen
+                marks and see what shape they make.
             </EditableParagraph>
         </Block>
     </StackLayout>,

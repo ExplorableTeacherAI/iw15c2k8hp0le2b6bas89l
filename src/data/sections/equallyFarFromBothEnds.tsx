@@ -8,16 +8,19 @@ import {
     InlineFeedback,
     InlineLinkedHighlight,
     InlineScrubbleNumber,
+    InlineSpotColor,
+    InlineTooltip,
     InteractionHintSequence,
 } from "@/components/atoms";
-import { Figure } from "@/components/molecules";
+import { Figure, FormulaBlock } from "@/components/molecules";
 import { useVar, useSetVar } from "@/stores";
 import { clamp } from "@/lib/motion";
 import {
     getVariableInfo,
     numberPropsFromDefinition,
     choicePropsFromDefinition,
-    linkedHighlightPropsFromDefinition,
+    spotColorPropsFromDefinition,
+    scrubVarsFromDefinitions,
 } from "../variables";
 
 // ── View geometry ────────────────────────────────────────────────────────────
@@ -35,10 +38,13 @@ const Y_MIN = -2.3;
 const MATCH_TOLERANCE = 0.12; // cm difference counted as "equal"
 const MARK_SPACING = 0.3; // cm — how far apart new pencil marks must be
 
-const INK = "#334155"; // labels, pencil marks
-const INK_STRUCTURE = "#64748B"; // the segment and the two measured rods
+const INK = "#334155"; // labels
+const INK_STRUCTURE = "#64748B"; // the segment itself
 const INK_QUIET = "#CBD5E1"; // end caps
-const ACCENT = "#62D0AD"; // ONE accent: the draggable point and the equal state
+const HANDLE = "#62D0AD"; // teal — the point you drag
+const SIDE_A = "#8E90F5"; // indigo — everything measured from A
+const SIDE_B = "#AC8BF9"; // violet — everything measured from B
+const BISECTOR = "#F8A0CD"; // rose — the pencil marks, which trace the bisector
 
 const EASE_150 = { transition: "opacity 150ms ease, stroke-width 150ms ease" } as const;
 
@@ -81,6 +87,12 @@ function EqualDistanceDrawing() {
     const distanceToB = Math.hypot(pointX - halfSegment, pointY);
     const isEqual = Math.abs(distanceToA - distanceToB) < MATCH_TOLERANCE;
 
+    // Publish both lengths so the formula below the figure can read them live.
+    useEffect(() => {
+        setVar("equalDistanceToA", Math.round(distanceToA * 100) / 100);
+        setVar("equalDistanceToB", Math.round(distanceToB * 100) / 100);
+    }, [distanceToA, distanceToB, setVar]);
+
     // The linked-highlight contract: the target pops, everything else recedes.
     const opacityFor = (id: string) => (highlight && highlight !== id ? 0.35 : 1);
     const isActive = (id: string) => highlight === id;
@@ -117,12 +129,13 @@ function EqualDistanceDrawing() {
     const screenP = { x: toScreenX(pointX), y: toScreenY(pointY) };
 
     // Rod labels ride the middle of each rod, clamped so they never leave the frame.
-    const labelHalfWidth = 36;
+    const labelHalfWidth = 44; // widest label is "PA = 10.6 cm" ≈ 86 units
     const labelX = (from: { x: number }) =>
         clamp((from.x + screenP.x) / 2, 24 + labelHalfWidth, VIEW_WIDTH - 24 - labelHalfWidth);
     const labelY = (from: { y: number }) => (from.y + screenP.y) / 2 - 10;
 
     const markCount = Math.floor(marks.length / 2);
+    const markCountColour = markCount > 0 ? BISECTOR : INK;
     const handleRadius = dragging || hovered ? 12 : 10;
 
     return (
@@ -137,7 +150,7 @@ function EqualDistanceDrawing() {
             <text
                 x={24}
                 y={32}
-                fill={INK}
+                fill={markCountColour}
                 fontSize="12"
                 textAnchor="start"
                 opacity={opacityFor("count")}
@@ -153,9 +166,9 @@ function EqualDistanceDrawing() {
                         key={`mark-${index}`}
                         cx={toScreenX(marks[index * 2])}
                         cy={toScreenY(marks[index * 2 + 1])}
-                        r={3.2}
-                        fill={INK}
-                        opacity={0.85}
+                        r={3.4}
+                        fill={BISECTOR}
+                        opacity={0.9}
                     />
                 ))}
             </g>
@@ -191,7 +204,7 @@ function EqualDistanceDrawing() {
                         y1={screenA.y}
                         x2={screenP.x}
                         y2={screenP.y}
-                        stroke={ACCENT}
+                        stroke={SIDE_A}
                         strokeWidth="9"
                         opacity={0.28}
                         strokeLinecap="round"
@@ -202,20 +215,21 @@ function EqualDistanceDrawing() {
                     y1={screenA.y}
                     x2={screenP.x}
                     y2={screenP.y}
-                    stroke={isEqual || isActive("distanceToA") ? ACCENT : INK_STRUCTURE}
-                    strokeWidth={isActive("distanceToA") ? 3.6 : 2}
+                    stroke={SIDE_A}
+                    strokeWidth={isActive("distanceToA") ? 3.6 : isEqual ? 3 : 2}
                     strokeLinecap="round"
                     style={EASE_150}
                 />
                 <text
                     x={labelX(screenA)}
                     y={labelY(screenA)}
-                    fill={isEqual || isActive("distanceToA") ? ACCENT : INK}
+                    fill={SIDE_A}
                     fontSize="12"
+                    fontWeight={isEqual ? 600 : 400}
                     textAnchor="middle"
                     style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
                 >
-                    {formatLength(distanceToA)}
+                    {`PA = ${formatLength(distanceToA)}`}
                 </text>
             </g>
 
@@ -227,7 +241,7 @@ function EqualDistanceDrawing() {
                         y1={screenB.y}
                         x2={screenP.x}
                         y2={screenP.y}
-                        stroke={ACCENT}
+                        stroke={SIDE_B}
                         strokeWidth="9"
                         opacity={0.28}
                         strokeLinecap="round"
@@ -238,30 +252,34 @@ function EqualDistanceDrawing() {
                     y1={screenB.y}
                     x2={screenP.x}
                     y2={screenP.y}
-                    stroke={isEqual || isActive("distanceToB") ? ACCENT : INK_STRUCTURE}
-                    strokeWidth={isActive("distanceToB") ? 3.6 : 2}
+                    stroke={SIDE_B}
+                    strokeWidth={isActive("distanceToB") ? 3.6 : isEqual ? 3 : 2}
                     strokeLinecap="round"
                     style={EASE_150}
                 />
                 <text
                     x={labelX(screenB)}
                     y={labelY(screenB)}
-                    fill={isEqual || isActive("distanceToB") ? ACCENT : INK}
+                    fill={SIDE_B}
                     fontSize="12"
+                    fontWeight={isEqual ? 600 : 400}
                     textAnchor="middle"
                     style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
                 >
-                    {formatLength(distanceToB)}
+                    {`PB = ${formatLength(distanceToB)}`}
                 </text>
             </g>
 
             {/* The draggable point */}
             <g opacity={opacityFor("point")} style={EASE_150}>
+                {isEqual && (
+                    <circle cx={screenP.x} cy={screenP.y} r={handleRadius + 8} fill={BISECTOR} opacity={0.3} />
+                )}
                 <circle
                     cx={screenP.x}
                     cy={screenP.y}
                     r={handleRadius}
-                    fill={ACCENT}
+                    fill={HANDLE}
                     filter="url(#equal-distance-handle-shadow)"
                     style={{ transition: "r 150ms ease" }}
                 />
@@ -291,12 +309,14 @@ function EqualDistanceFigure() {
     return (
         <Figure
             id="equal-distance-trail"
-            caption="Drag the teal dot around the page. Whenever its distance to A matches its distance to B, both rods turn teal and the dot leaves a pencil mark behind."
+            caption="Drag the teal dot around the page. The indigo rod measures PA, the violet rod measures PB, and whenever the two readings match the dot leaves a pink pencil mark behind."
             onReset={() => {
                 setVar("equalDistancePointX", DEFAULT_POINT_X);
                 setVar("equalDistancePointY", DEFAULT_POINT_Y);
                 setVar("equalDistanceMarks", []);
                 setVar("equalDistanceHighlight", "");
+                setVar("equalDistanceToA", 3.16);
+                setVar("equalDistanceToB", 1.98);
             }}
         >
             <EqualDistanceDrawing />
@@ -334,17 +354,19 @@ export const equallyFarFromBothEndsBlocks: ReactElement[] = [
                 <InlineLinkedHighlight
                     varName="equalDistanceHighlight"
                     highlightId="distanceToA"
-                    {...linkedHighlightPropsFromDefinition(getVariableInfo('equalDistanceHighlight'))}
+                    color="#8E90F5"
+                    bgColor="rgba(142, 144, 245, 0.22)"
                 >
-                    distance to A
+                    indigo distance to A
                 </InlineLinkedHighlight>{" "}
                 matches its{" "}
                 <InlineLinkedHighlight
                     varName="equalDistanceHighlight"
                     highlightId="distanceToB"
-                    {...linkedHighlightPropsFromDefinition(getVariableInfo('equalDistanceHighlight'))}
+                    color="#AC8BF9"
+                    bgColor="rgba(172, 139, 249, 0.22)"
                 >
-                    distance to B
+                    violet distance to B
                 </InlineLinkedHighlight>
                 , it leaves a pencil mark behind. Collect half a dozen marks and see what shape they
                 make.
@@ -358,12 +380,53 @@ export const equallyFarFromBothEndsBlocks: ReactElement[] = [
         </Block>
     </StackLayout>,
 
+    <StackLayout key="layout-equal-distance-formula" maxWidth="xl">
+        <Block id="equal-distance-formula" padding="lg">
+            <FormulaBlock
+                latex="\clr{sideA}{PA} = \val{equalDistanceToA}\,\text{cm} \quad \clr{sideB}{PB} = \val{equalDistanceToB}\,\text{cm} \quad \clr{segment}{AB} = \scrub{equalDistanceSegmentLength}\,\text{cm}"
+                colorMap={{ sideA: "#8E90F5", sideB: "#AC8BF9", segment: "#A8D5A2" }}
+                variables={{
+                    ...scrubVarsFromDefinitions(['equalDistanceSegmentLength', 'equalDistanceToA', 'equalDistanceToB']),
+                    equalDistanceToA: { color: "#8E90F5", step: 0.1, formatValue: (value: number) => value.toFixed(1) },
+                    equalDistanceToB: { color: "#AC8BF9", step: 0.1, formatValue: (value: number) => value.toFixed(1) },
+                }}
+            />
+        </Block>
+    </StackLayout>,
+
     <StackLayout key="layout-equal-distance-insight" maxWidth="xl">
         <Block id="equal-distance-insight" padding="sm">
             <EditableParagraph id="para-equal-distance-insight" blockId="equal-distance-insight">
-                The marks all sit on one straight line, and that line meets AB square on. This is the
-                perpendicular bisector: bisector because it cuts AB into two equal halves,
-                perpendicular because it crosses at a right angle. Stretch AB to{" "}
+                The two readings above are the{" "}
+                <InlineSpotColor
+                    varName="equalDistanceToA"
+                    {...spotColorPropsFromDefinition(getVariableInfo('equalDistanceToA'))}
+                >
+                    indigo PA
+                </InlineSpotColor>{" "}
+                and the{" "}
+                <InlineSpotColor
+                    varName="equalDistanceToB"
+                    {...spotColorPropsFromDefinition(getVariableInfo('equalDistanceToB'))}
+                >
+                    violet PB
+                </InlineSpotColor>
+                , and the pink marks appear exactly where they agree. They sit on one straight line
+                that meets AB square on: the{" "}
+                <InlineTooltip
+                    id="tooltip-equal-distance-bisector"
+                    tooltip="The line that cuts a segment into two equal halves and crosses it at a right angle. Every point on it is the same distance from both ends."
+                >
+                    perpendicular bisector
+                </InlineTooltip>
+                . Stretch{" "}
+                <InlineSpotColor
+                    varName="equalDistanceSegmentLength"
+                    {...spotColorPropsFromDefinition(getVariableInfo('equalDistanceSegmentLength'))}
+                >
+                    AB
+                </InlineSpotColor>{" "}
+                to{" "}
                 <InlineScrubbleNumber
                     varName="equalDistanceSegmentLength"
                     {...numberPropsFromDefinition(getVariableInfo('equalDistanceSegmentLength'))}

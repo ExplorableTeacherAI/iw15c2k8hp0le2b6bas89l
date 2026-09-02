@@ -1,4 +1,4 @@
-import React, { useRef, useState, type ReactElement } from "react";
+import React, { useEffect, useRef, useState, type ReactElement } from "react";
 import { StackLayout } from "@/components/layouts";
 import { Block } from "@/components/templates";
 import {
@@ -9,9 +9,12 @@ import {
     InlineFeedback,
     InlineLinkedHighlight,
     InlineScrubbleNumber,
+    InlineSpotColor,
+    InlineTooltip,
+    InlineTrigger,
     InteractionHintSequence,
 } from "@/components/atoms";
-import { Figure } from "@/components/molecules";
+import { Figure, FormulaBlock } from "@/components/molecules";
 import { useVar, useSetVar } from "@/stores";
 import { clamp } from "@/lib/motion";
 import {
@@ -20,6 +23,7 @@ import {
     choicePropsFromDefinition,
     clozePropsFromDefinition,
     linkedHighlightPropsFromDefinition,
+    spotColorPropsFromDefinition,
 } from "../variables";
 
 // ── View geometry ────────────────────────────────────────────────────────────
@@ -45,9 +49,12 @@ const DEFAULT_POINT_X = 0.6;
 const DEFAULT_POINT_HEIGHT = 1.9;
 
 const INK = "#334155";
-const INK_STRUCTURE = "#64748B";
 const INK_QUIET = "#CBD5E1";
-const ACCENT = "#62D0AD"; // ONE accent: the movable point and the perpendicular it makes
+const HANDLE = "#62D0AD"; // teal — the point P you drag and the arc swung from it
+const MARK_LEFT = "#8E90F5"; // indigo — the left mark, playing the part of A
+const MARK_RIGHT = "#AC8BF9"; // violet — the right mark, playing the part of B
+const PERPENDICULAR = "#F8A0CD"; // rose — the upright and its right angle
+const FOOT = "#62CCF9"; // sky — the foot F, the point the construction produces
 
 const EASE_150 = { transition: "opacity 150ms ease, stroke-width 150ms ease" } as const;
 
@@ -89,6 +96,11 @@ function PerpendicularDrawing() {
     const onTheLine = pointHeight < 0.001;
     // One opening, chosen so the arc always cuts the line the same distance each side.
     const openingFromPoint = Math.sqrt(pointHeight ** 2 + MARK_DISTANCE ** 2);
+
+    // Publish it so the formula below the figure can read it live.
+    useEffect(() => {
+        setVar("perpendicularOpening", Math.round(openingFromPoint * 100) / 100);
+    }, [openingFromPoint, setVar]);
 
     const dim = (id: string) => (highlight && highlight !== id ? 0.35 : 1);
     const active = (id: string) => highlight === id;
@@ -139,7 +151,7 @@ function PerpendicularDrawing() {
             <text
                 x={24}
                 y={32}
-                fill={INK}
+                fill={HANDLE}
                 fontSize="12"
                 textAnchor="start"
                 opacity={dim("pointP")}
@@ -175,12 +187,12 @@ function PerpendicularDrawing() {
             {/* the arc swung from P, cutting the line in two places */}
             <g opacity={dim("arcFromPoint")} style={EASE_150} {...hoverProps("arcFromPoint")}>
                 {active("arcFromPoint") && (
-                    <path d={arcFromPoint} fill="none" stroke={ACCENT} strokeWidth="8" opacity={0.28} strokeLinecap="round" />
+                    <path d={arcFromPoint} fill="none" stroke={HANDLE} strokeWidth="8" opacity={0.28} strokeLinecap="round" />
                 )}
                 <path
                     d={arcFromPoint}
                     fill="none"
-                    stroke={active("arcFromPoint") ? ACCENT : INK_STRUCTURE}
+                    stroke={HANDLE}
                     strokeWidth={active("arcFromPoint") ? 3 : 1.8}
                     strokeLinecap="round"
                     style={EASE_150}
@@ -210,16 +222,16 @@ function PerpendicularDrawing() {
             <g opacity={dim("marksOnLine")} style={EASE_150} {...hoverProps("marksOnLine")}>
                 {active("marksOnLine") && (
                     <>
-                        <circle cx={markLeft} cy={LINE_Y} r={12} fill={ACCENT} opacity={0.28} />
-                        <circle cx={markRight} cy={LINE_Y} r={12} fill={ACCENT} opacity={0.28} />
+                        <circle cx={markLeft} cy={LINE_Y} r={12} fill={MARK_LEFT} opacity={0.28} />
+                        <circle cx={markRight} cy={LINE_Y} r={12} fill={MARK_RIGHT} opacity={0.28} />
                     </>
                 )}
-                <circle cx={markLeft} cy={LINE_Y} r={active("marksOnLine") ? 6.5 : 5} fill={INK} style={EASE_150} />
-                <circle cx={markRight} cy={LINE_Y} r={active("marksOnLine") ? 6.5 : 5} fill={INK} style={EASE_150} />
-                <text x={markLeft} y={LINE_Y + 24} fill={INK} fontSize="12.5" textAnchor="middle">
+                <circle cx={markLeft} cy={LINE_Y} r={active("marksOnLine") ? 6.5 : 5} fill={MARK_LEFT} style={EASE_150} />
+                <circle cx={markRight} cy={LINE_Y} r={active("marksOnLine") ? 6.5 : 5} fill={MARK_RIGHT} style={EASE_150} />
+                <text x={markLeft} y={LINE_Y + 24} fill={MARK_LEFT} fontSize="12.5" textAnchor="middle">
                     M₁
                 </text>
-                <text x={markRight} y={LINE_Y + 24} fill={INK} fontSize="12.5" textAnchor="middle">
+                <text x={markRight} y={LINE_Y + 24} fill={MARK_RIGHT} fontSize="12.5" textAnchor="middle">
                     M₂
                 </text>
             </g>
@@ -232,7 +244,7 @@ function PerpendicularDrawing() {
                         y1={100}
                         x2={footScreen.x}
                         y2={312}
-                        stroke={ACCENT}
+                        stroke={PERPENDICULAR}
                         strokeWidth="10"
                         opacity={0.28}
                         strokeLinecap="round"
@@ -243,20 +255,21 @@ function PerpendicularDrawing() {
                     y1={100}
                     x2={footScreen.x}
                     y2={312}
-                    stroke={ACCENT}
+                    stroke={PERPENDICULAR}
                     strokeWidth={active("perpendicular") ? 4 : 2.8}
                     strokeLinecap="round"
                     style={EASE_150}
                 />
-                <circle cx={footScreen.x} cy={toScreenY(CROSSING_HEIGHT)} r={4.5} fill={ACCENT} />
-                <circle cx={footScreen.x} cy={toScreenY(-CROSSING_HEIGHT)} r={4.5} fill={ACCENT} />
+                <circle cx={footScreen.x} cy={toScreenY(CROSSING_HEIGHT)} r={4.5} fill={PERPENDICULAR} />
+                <circle cx={footScreen.x} cy={toScreenY(-CROSSING_HEIGHT)} r={4.5} fill={PERPENDICULAR} />
                 <path
                     d={`M ${footScreen.x + 13} ${LINE_Y} L ${footScreen.x + 13} ${LINE_Y - 13} L ${footScreen.x} ${LINE_Y - 13}`}
                     fill="none"
-                    stroke={ACCENT}
+                    stroke={PERPENDICULAR}
                     strokeWidth="1.8"
                 />
-                <text x={footScreen.x - 13} y={LINE_Y + 24} fill={INK} fontSize="12.5" textAnchor="end">
+                <circle cx={footScreen.x} cy={LINE_Y} r={4.5} fill={FOOT} />
+                <text x={footScreen.x - 13} y={LINE_Y + 24} fill={FOOT} fontSize="12.5" textAnchor="end">
                     F
                 </text>
             </g>
@@ -267,11 +280,11 @@ function PerpendicularDrawing() {
                     cx={pointScreen.x}
                     cy={pointScreen.y}
                     r={handleRadius}
-                    fill={ACCENT}
+                    fill={HANDLE}
                     filter="url(#perpendicular-handle-shadow)"
                     style={{ transition: "r 150ms ease" }}
                 />
-                <text x={pointScreen.x + 20} y={pointScreen.y - 12} fill={INK} fontSize="13" textAnchor="start">
+                <text x={pointScreen.x + 20} y={pointScreen.y - 12} fill={HANDLE} fontSize="13" textAnchor="start">
                     P
                 </text>
                 <circle
@@ -305,6 +318,7 @@ function PerpendicularFigure() {
                 setVar("perpendicularPointX", DEFAULT_POINT_X);
                 setVar("perpendicularPointHeight", DEFAULT_POINT_HEIGHT);
                 setVar("perpendicularHighlight", "");
+                setVar("perpendicularOpening", Math.round(Math.sqrt(DEFAULT_POINT_HEIGHT ** 2 + MARK_DISTANCE ** 2) * 100) / 100);
             }}
         >
             <PerpendicularDrawing />
@@ -342,19 +356,27 @@ export const perpendicularsAtAndFromBlocks: ReactElement[] = [
                 <InlineLinkedHighlight
                     varName="perpendicularHighlight"
                     highlightId="marksOnLine"
-                    {...linkedHighlightPropsFromDefinition(getVariableInfo('perpendicularHighlight'))}
+                    color="#8E90F5"
+                    bgColor="rgba(142, 144, 245, 0.22)"
                 >
-                    two marks
+                    two marks, M₁ and M₂
                 </InlineLinkedHighlight>
-                , and bisecting those marks gives the{" "}
+                , and bisecting them gives the{" "}
                 <InlineLinkedHighlight
                     varName="perpendicularHighlight"
                     highlightId="perpendicular"
                     {...linkedHighlightPropsFromDefinition(getVariableInfo('perpendicularHighlight'))}
                 >
-                    upright through them
+                    pink upright through them
                 </InlineLinkedHighlight>
-                . Drag P along the line, lift it clear, and watch what refuses to change.
+                , meeting the line at the{" "}
+                <InlineTooltip
+                    id="tooltip-perpendicular-foot"
+                    tooltip="The foot of a perpendicular is the point where it meets the line it stands on."
+                >
+                    foot
+                </InlineTooltip>{" "}
+                F. Drag P along the line, lift it clear, and watch what refuses to change.
             </EditableParagraph>
         </Block>
     </StackLayout>,
@@ -362,6 +384,19 @@ export const perpendicularsAtAndFromBlocks: ReactElement[] = [
     <StackLayout key="layout-perpendiculars-visual" maxWidth="xl">
         <Block id="perpendiculars-visual" padding="sm" hasVisualization>
             <PerpendicularFigure />
+        </Block>
+    </StackLayout>,
+
+    <StackLayout key="layout-perpendiculars-formula" maxWidth="xl">
+        <Block id="perpendiculars-formula" padding="lg">
+            <FormulaBlock
+                latex="\clr{markLeft}{PM_1} = \clr{markRight}{PM_2} = \sqrt{\scrub{perpendicularPointHeight}^2 + 1.6^2} = \val{perpendicularOpening}\,\text{cm}"
+                colorMap={{ markLeft: "#8E90F5", markRight: "#AC8BF9" }}
+                variables={{
+                    perpendicularPointHeight: { min: 0, max: 3, step: 0.1, color: "#62D0AD", formatValue: (value: number) => value.toFixed(1) },
+                    perpendicularOpening: { color: "#62D0AD", step: 0.01, formatValue: (value: number) => value.toFixed(2) },
+                }}
+            />
         </Block>
     </StackLayout>,
 
@@ -374,10 +409,38 @@ export const perpendicularsAtAndFromBlocks: ReactElement[] = [
                     {...numberPropsFromDefinition(getVariableInfo('perpendicularPointHeight'))}
                     formatValue={(value: number) => `${value.toFixed(1)} cm`}
                 />{" "}
-                and the arc has to reach further, yet M₁ and M₂ stay the same distance from the foot
-                and the corner stays square. Set P back down on the line and nothing changes except
-                how those two marks were found. One construction, three jobs.
+                and the{" "}
+                <InlineSpotColor
+                    varName="perpendicularOpening"
+                    {...spotColorPropsFromDefinition(getVariableInfo('perpendicularOpening'))}
+                >
+                    opening from P
+                </InlineSpotColor>{" "}
+                reaches further, yet the indigo PM₁ and the violet PM₂ stay equal and the corner
+                stays square. Put{" "}
+                <InlineTrigger varName="perpendicularPointHeight" value={0} icon="refresh">
+                    P back down on the line
+                </InlineTrigger>{" "}
+                and nothing changes except how those two marks were found. One construction, three
+                jobs, and the angle at the foot never changes:
             </EditableParagraph>
+        </Block>
+    </StackLayout>,
+
+    <StackLayout key="layout-perpendiculars-right-angle" maxWidth="xl">
+        <Block id="perpendiculars-right-angle" padding="lg">
+            <FormulaBlock
+                latex="\angle \clr{pointP}{P}\clr{foot}{F}\clr{markRight}{M_2} = \cloze{answer_perpendicular_angle}\,\text{degrees}"
+                colorMap={{ pointP: "#62D0AD", foot: "#62CCF9", markRight: "#AC8BF9" }}
+                clozeInputs={{
+                    answer_perpendicular_angle: {
+                        correctAnswer: "90 | 90°",
+                        placeholder: "??",
+                        color: "#F4A89A",
+                        bgColor: "rgba(244, 168, 154, 0.28)",
+                    },
+                }}
+            />
         </Block>
     </StackLayout>,
 

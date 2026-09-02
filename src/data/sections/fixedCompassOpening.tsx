@@ -8,14 +8,20 @@ import {
     InlineClozeInput,
     InlineFeedback,
     InlineLinkedHighlight,
+    InlineSpotColor,
+    InlineTooltip,
+    InlineTrigger,
     InteractionHintSequence,
 } from "@/components/atoms";
-import { Figure } from "@/components/molecules";
+import { Figure, FormulaBlock } from "@/components/molecules";
 import { useVar, useSetVar } from "@/stores";
 import { clamp } from "@/lib/motion";
 import {
     getVariableInfo,
     linkedHighlightPropsFromDefinition,
+    spotColorPropsFromDefinition,
+    choicePropsFromDefinition,
+    scrubVarsFromDefinitions,
 } from "../variables";
 
 // ── View geometry ────────────────────────────────────────────────────────────
@@ -39,9 +45,11 @@ const HANDLE_ANGLE_A = 200; // degrees, measured the usual way from the positive
 const HANDLE_ANGLE_B = 340;
 
 const INK = "#334155";
-const INK_STRUCTURE = "#64748B";
 const INK_QUIET = "#CBD5E1";
-const ACCENT = "#62D0AD"; // ONE accent: the line through the crossings
+const HANDLE = "#62D0AD"; // teal — the two handles you drag
+const SIDE_A = "#8E90F5"; // indigo — the arc swung from A and its opening
+const SIDE_B = "#AC8BF9"; // violet — the arc swung from B and its opening
+const BISECTOR = "#F8A0CD"; // rose — the line through the crossings
 
 const EASE_150 = { transition: "opacity 150ms ease, stroke-width 150ms ease" } as const;
 
@@ -119,7 +127,7 @@ function ArcOpeningDrawing() {
                     cx={position.x}
                     cy={position.y}
                     r={lifted ? 11 : 9}
-                    fill={INK_STRUCTURE}
+                    fill={HANDLE}
                     filter="url(#arc-handle-shadow)"
                     style={{ transition: "r 150ms ease" }}
                 />
@@ -161,7 +169,7 @@ function ArcOpeningDrawing() {
             <text
                 x={24}
                 y={32}
-                fill={INK}
+                fill={SIDE_A}
                 fontSize="12"
                 textAnchor="start"
                 opacity={opacityFor("arcFromA")}
@@ -172,7 +180,7 @@ function ArcOpeningDrawing() {
             <text
                 x={VIEW_WIDTH - 24}
                 y={32}
-                fill={INK}
+                fill={SIDE_B}
                 fontSize="12"
                 textAnchor="end"
                 opacity={opacityFor("arcFromB")}
@@ -206,7 +214,7 @@ function ArcOpeningDrawing() {
                         cy={centreA.y}
                         r={radiusA * PIXELS_PER_CM}
                         fill="none"
-                        stroke={ACCENT}
+                        stroke={SIDE_A}
                         strokeWidth="8"
                         opacity={0.28}
                     />
@@ -216,7 +224,7 @@ function ArcOpeningDrawing() {
                     cy={centreA.y}
                     r={radiusA * PIXELS_PER_CM}
                     fill="none"
-                    stroke={isActive("arcFromA") ? ACCENT : INK_STRUCTURE}
+                    stroke={SIDE_A}
                     strokeWidth={isActive("arcFromA") ? 3 : 1.8}
                     style={EASE_150}
                 />
@@ -228,7 +236,7 @@ function ArcOpeningDrawing() {
                         cy={centreB.y}
                         r={radiusB * PIXELS_PER_CM}
                         fill="none"
-                        stroke={ACCENT}
+                        stroke={SIDE_B}
                         strokeWidth="8"
                         opacity={0.28}
                     />
@@ -238,7 +246,7 @@ function ArcOpeningDrawing() {
                     cy={centreB.y}
                     r={radiusB * PIXELS_PER_CM}
                     fill="none"
-                    stroke={isActive("arcFromB") ? ACCENT : INK_STRUCTURE}
+                    stroke={SIDE_B}
                     strokeWidth={isActive("arcFromB") ? 3 : 1.8}
                     style={EASE_150}
                 />
@@ -274,7 +282,7 @@ function ArcOpeningDrawing() {
                             y1={lineTop}
                             x2={crossingScreenX}
                             y2={lineBottom}
-                            stroke={ACCENT}
+                            stroke={BISECTOR}
                             strokeWidth="10"
                             opacity={0.28}
                             strokeLinecap="round"
@@ -285,13 +293,13 @@ function ArcOpeningDrawing() {
                         y1={lineTop}
                         x2={crossingScreenX}
                         y2={lineBottom}
-                        stroke={ACCENT}
+                        stroke={BISECTOR}
                         strokeWidth={isActive("crossingLine") || onTarget ? 4 : 2.6}
                         strokeLinecap="round"
                         style={EASE_150}
                     />
-                    <circle cx={crossingScreenX} cy={toScreenY(crossingHeight)} r={5.5} fill={ACCENT} />
-                    <circle cx={crossingScreenX} cy={toScreenY(-crossingHeight)} r={5.5} fill={ACCENT} />
+                    <circle cx={crossingScreenX} cy={toScreenY(crossingHeight)} r={5.5} fill={BISECTOR} />
+                    <circle cx={crossingScreenX} cy={toScreenY(-crossingHeight)} r={5.5} fill={BISECTOR} />
                 </g>
             )}
 
@@ -299,7 +307,7 @@ function ArcOpeningDrawing() {
             <text
                 x={ORIGIN_X}
                 y={VIEW_HEIGHT - 24}
-                fill={onTarget ? ACCENT : INK}
+                fill={onTarget ? BISECTOR : INK}
                 fontSize="12.5"
                 textAnchor="middle"
                 opacity={opacityFor("crossingLine")}
@@ -323,7 +331,7 @@ function ArcOpeningFigure() {
     return (
         <Figure
             id="fixed-compass-opening"
-            caption="Each arc has its own handle. Pull them to change one opening at a time, and try to land the teal line through the crossings exactly on the dashed target."
+            caption="Each arc has its own teal handle. Pull them to change one opening at a time, and try to land the pink line through the crossings exactly on the dashed target."
             onReset={() => {
                 setVar("fixedOpeningRadiusA", DEFAULT_RADIUS_A);
                 setVar("fixedOpeningRadiusB", DEFAULT_RADIUS_B);
@@ -364,26 +372,34 @@ export const fixedCompassOpeningBlocks: ReactElement[] = [
                 <InlineLinkedHighlight
                     varName="fixedOpeningHighlight"
                     highlightId="arcFromA"
-                    {...linkedHighlightPropsFromDefinition(getVariableInfo('fixedOpeningHighlight'))}
+                    color="#8E90F5"
+                    bgColor="rgba(142, 144, 245, 0.22)"
                 >
-                    one arc from A
+                    one indigo arc from A
                 </InlineLinkedHighlight>
                 , move the needle to B and swing{" "}
                 <InlineLinkedHighlight
                     varName="fixedOpeningHighlight"
                     highlightId="arcFromB"
-                    {...linkedHighlightPropsFromDefinition(getVariableInfo('fixedOpeningHighlight'))}
+                    color="#AC8BF9"
+                    bgColor="rgba(172, 139, 249, 0.22)"
                 >
-                    another from B
+                    a violet one from B
                 </InlineLinkedHighlight>
-                . Each arc below has a handle that changes only its own opening. See whether you can
-                land the{" "}
+                . Each arc has its own teal handle, changing only its own{" "}
+                <InlineTooltip
+                    id="tooltip-fixed-opening-word"
+                    tooltip="The opening is how far apart the two legs of the compasses are set. It is the radius of the arc they draw."
+                >
+                    opening
+                </InlineTooltip>
+                . See whether you can land the{" "}
                 <InlineLinkedHighlight
                     varName="fixedOpeningHighlight"
                     highlightId="crossingLine"
                     {...linkedHighlightPropsFromDefinition(getVariableInfo('fixedOpeningHighlight'))}
                 >
-                    line through the crossings
+                    pink line through the crossings
                 </InlineLinkedHighlight>{" "}
                 exactly on the dashed target.
             </EditableParagraph>
@@ -396,26 +412,72 @@ export const fixedCompassOpeningBlocks: ReactElement[] = [
         </Block>
     </StackLayout>,
 
+    <StackLayout key="layout-fixed-opening-formula" maxWidth="xl">
+        <Block id="fixed-opening-formula" padding="lg">
+            <FormulaBlock
+                latex="\clr{radiusA}{r_A} = \scrub{fixedOpeningRadiusA}\,\text{cm} \quad \clr{radiusB}{r_B} = \scrub{fixedOpeningRadiusB}\,\text{cm}"
+                colorMap={{ radiusA: "#8E90F5", radiusB: "#AC8BF9" }}
+                variables={scrubVarsFromDefinitions(['fixedOpeningRadiusA', 'fixedOpeningRadiusB'])}
+            />
+        </Block>
+    </StackLayout>,
+
     <StackLayout key="layout-fixed-opening-insight" maxWidth="xl">
         <Block id="fixed-opening-insight" padding="sm">
             <EditableParagraph id="para-fixed-opening-insight" blockId="fixed-opening-insight">
-                Every setting that lands on the target has the two openings equal, and no unequal
-                pair ever gets there. With one opening used twice, each crossing is the same distance
-                from A as from B, so it has to sit on the bisector. The arcs are not untidy working,
-                they are the evidence, so they stay on the page.
+                Every setting that lands on the target has the{" "}
+                <InlineSpotColor
+                    varName="fixedOpeningRadiusA"
+                    {...spotColorPropsFromDefinition(getVariableInfo('fixedOpeningRadiusA'))}
+                >
+                    opening from A
+                </InlineSpotColor>{" "}
+                equal to the{" "}
+                <InlineSpotColor
+                    varName="fixedOpeningRadiusB"
+                    {...spotColorPropsFromDefinition(getVariableInfo('fixedOpeningRadiusB'))}
+                >
+                    opening from B
+                </InlineSpotColor>
+                , and no unequal pair ever gets there: try{" "}
+                <InlineTrigger varName="fixedOpeningRadiusA" value={4} icon="zap">
+                    4 cm from A
+                </InlineTrigger>{" "}
+                alongside{" "}
+                <InlineTrigger varName="fixedOpeningRadiusB" value={4} icon="zap">
+                    4 cm from B
+                </InlineTrigger>
+                . One opening used twice makes each crossing the same distance from A as from B, so
+                it has to sit on the bisector. The arcs are the evidence, so they stay on the page.
             </EditableParagraph>
+        </Block>
+    </StackLayout>,
+
+    <StackLayout key="layout-fixed-opening-condition" maxWidth="xl">
+        <Block id="fixed-opening-condition" padding="lg">
+            <FormulaBlock
+                latex="\text{line lands on the middle} \iff \clr{radiusA}{r_A} \; \choice{answer_fixed_opening_relation} \; \clr{radiusB}{r_B}"
+                colorMap={{ radiusA: "#8E90F5", radiusB: "#AC8BF9" }}
+                clozeChoices={{
+                    answer_fixed_opening_relation: {
+                        correctAnswer: "=",
+                        options: ["=", "<", ">"],
+                        ...choicePropsFromDefinition(getVariableInfo('answer_fixed_opening_relation')),
+                    },
+                }}
+            />
         </Block>
     </StackLayout>,
 
     <StackLayout key="layout-fixed-opening-question-equal" maxWidth="xl">
         <Block id="fixed-opening-question-equal" padding="md">
-            <EditableParagraph id="para-fixed-opening-question-equal" blockId="fixed-opening-question-equal">A student bisects a different segment PQ. She swings the first arc with the compasses opened to 5 cm, then knocks them and swings the second at 4 cm, and her line misses the middle of PQ. For the line to land on the middle, the two openings must be <InlineFeedback varName={"answer_fixed_opening_equal"} correctValue={["equal", "the same", "same", "identical"]} caseSensitive={false} position={"terminal"} successMessage={"— yes. Equal openings are what force each crossing to be the same distance from P as from Q"} failureMessage={"— not quite."} hint={"Think about what every winning setting in the figure above had in common"} reviewLabel={"Review this concept"} visualizationHint={{"blockId": "fixed-opening-visual", "hintKey": "feedback-fixed-opening-equal", "label": "Discover it yourself", "steps": [{"gesture": "drag", "label": "Pull the left handle until the opening from A reads 4.0 cm", "position": {"x": "13%", "y": "61%"}, "dragPath": {"type": "line", "startOffset": {"x": -16, "y": 8}, "endOffset": {"x": 20, "y": -10}}, "completionVar": "fixedOpeningRadiusA", "completionValue": 4, "completionTolerance": 0.25}, {"gesture": "drag", "label": "Now pull the right handle to 4.0 cm as well — watch the line reach the target", "position": {"x": "82%", "y": "59%"}, "dragPath": {"type": "line", "startOffset": {"x": 16, "y": 8}, "endOffset": {"x": -20, "y": -10}}, "completionVar": "fixedOpeningRadiusB", "completionValue": 4, "completionTolerance": 0.25}], "resetVars": {"fixedOpeningRadiusA": 4.2, "fixedOpeningRadiusB": 3.2}}}><InlineClozeInput varName={"answer_fixed_opening_equal"} correctAnswer={"equal | the same | same | identical"} placeholder={"???"} color={"#E53935"} bgColor={"rgba(59, 130, 246, 0.35)"} caseSensitive={false} id={"cloze-1787714988103-3tk4o"} /></InlineFeedback>.</EditableParagraph>
+            <EditableParagraph id="para-fixed-opening-question-equal" blockId="fixed-opening-question-equal">A student bisects a different segment PQ. She swings the first arc with the compasses opened to 5 cm, then knocks them and swings the second at 4 cm, and her line misses the middle of PQ. For the line to land on the middle, the two openings must be <InlineFeedback varName={"answer_fixed_opening_equal"} correctValue={["equal", "the same", "same", "identical"]} caseSensitive={false} position={"terminal"} successMessage={"— yes. Equal openings are what force each crossing to be the same distance from P as from Q"} failureMessage={"— not quite."} hint={"Think about what every winning setting in the figure above had in common"} reviewLabel={"Review this concept"} visualizationHint={{"blockId": "fixed-opening-visual", "hintKey": "feedback-fixed-opening-equal", "label": "Discover it yourself", "steps": [{"gesture": "drag", "label": "Pull the left handle until the opening from A reads 4.0 cm", "position": {"x": "13%", "y": "61%"}, "dragPath": {"type": "line", "startOffset": {"x": -16, "y": 8}, "endOffset": {"x": 20, "y": -10}}, "completionVar": "fixedOpeningRadiusA", "completionValue": 4, "completionTolerance": 0.25}, {"gesture": "drag", "label": "Now pull the right handle to 4.0 cm as well — watch the line reach the target", "position": {"x": "82%", "y": "59%"}, "dragPath": {"type": "line", "startOffset": {"x": 16, "y": 8}, "endOffset": {"x": -20, "y": -10}}, "completionVar": "fixedOpeningRadiusB", "completionValue": 4, "completionTolerance": 0.25}], "resetVars": {"fixedOpeningRadiusA": 4.2, "fixedOpeningRadiusB": 3.2}}}><InlineClozeInput varName={"answer_fixed_opening_equal"} correctAnswer={"equal | the same | same | identical"} placeholder={"???"} color={"#F4A89A"} bgColor={"rgba(244, 168, 154, 0.22)"} caseSensitive={false} id={"cloze-1787714988103-3tk4o"} /></InlineFeedback>.</EditableParagraph>
         </Block>
     </StackLayout>,
 
     <StackLayout key="layout-fixed-opening-question-arcs" maxWidth="xl">
         <Block id="fixed-opening-question-arcs" padding="md">
-            <EditableParagraph id="para-fixed-opening-question-arcs" blockId="fixed-opening-question-arcs">Her neighbour finishes the same construction, then rubs the arcs out to make the page look tidy. What has he thrown away? <InlineFeedback varName={"answer_fixed_opening_arcs"} correctValue={"the evidence that the two distances were equal"} caseSensitive={false} position={"standalone"} successMessage={"Exactly. Without the arcs, nobody can tell whether that line was constructed or simply drawn by eye"} failureMessage={"Not quite!"} hint={"Ask what the arcs prove about the crossings, rather than what they look like"} reviewBlockId={"fixed-opening-insight"} reviewLabel={"Read that again"}><InlineClozeChoice varName={"answer_fixed_opening_arcs"} correctAnswer={"the evidence that the two distances were equal"} options={["the evidence that the two distances were equal", "nothing, the line is still correct", "the midpoint of the segment"]} placeholder={"???"} color={"#E53935"} bgColor={"rgba(59, 130, 246, 0.35)"} id={"choice-1787714988104-jdpu4"} /></InlineFeedback></EditableParagraph>
+            <EditableParagraph id="para-fixed-opening-question-arcs" blockId="fixed-opening-question-arcs">Her neighbour finishes the same construction, then rubs the arcs out to make the page look tidy. What has he thrown away? <InlineFeedback varName={"answer_fixed_opening_arcs"} correctValue={"the evidence that the two distances were equal"} caseSensitive={false} position={"standalone"} successMessage={"Exactly. Without the arcs, nobody can tell whether that line was constructed or simply drawn by eye"} failureMessage={"Not quite!"} hint={"Ask what the arcs prove about the crossings, rather than what they look like"} reviewBlockId={"fixed-opening-insight"} reviewLabel={"Read that again"}><InlineClozeChoice varName={"answer_fixed_opening_arcs"} correctAnswer={"the evidence that the two distances were equal"} options={["the evidence that the two distances were equal", "nothing, the line is still correct", "the midpoint of the segment"]} placeholder={"???"} color={"#F4A89A"} bgColor={"rgba(244, 168, 154, 0.22)"} id={"choice-1787714988104-jdpu4"} /></InlineFeedback></EditableParagraph>
         </Block>
     </StackLayout>,
 ];

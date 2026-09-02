@@ -1,7 +1,7 @@
 import { type ReactElement } from "react";
 import { StackLayout } from "@/components/layouts";
 import { Block } from "@/components/templates";
-import { EditableH1, EditableParagraph } from "@/components/atoms";
+import { EditableH1, EditableParagraph, InlineTooltip } from "@/components/atoms";
 
 export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
     <StackLayout key="layout-orient-title" maxWidth="xl">
@@ -26,10 +26,16 @@ export const orientPerpendicularBisectorsBlocks: ReactElement[] = [
     <StackLayout key="layout-orient-promise" maxWidth="xl">
         <Block id="orient-promise" padding="sm">
             <EditableParagraph id="para-orient-promise" blockId="orient-promise">
-                Here we do that job with two tools only, a pair of compasses and a straightedge. By
-                the end you will be able to cut any line segment exactly in half, find its midpoint,
-                and drop a perpendicular onto a line from any point you choose, without measuring
-                anything.
+                Here we do that job with two tools only, a pair of compasses and a{" "}
+                <InlineTooltip
+                    id="tooltip-orient-straightedge"
+                    tooltip="A straightedge is a ruler used only for drawing straight lines. Its scale is ignored, because nothing in these constructions is measured."
+                >
+                    straightedge
+                </InlineTooltip>
+                . By the end you will be able to cut any line segment exactly in half, find its
+                midpoint, and drop a perpendicular onto a line from any point you choose, without
+                measuring anything.
             </EditableParagraph>
         </Block>
     </StackLayout>,

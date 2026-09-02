@@ -80,6 +80,18 @@ export interface VariableDefinition {
  * 6. OBJECT (complex data):
  *    { defaultValue: { x: 5, y: 10 }, type: 'object', schema: '{ x: number, y: number }' }
  */
+/**
+ * LESSON COLOUR KEY — one quantity, one colour, everywhere
+ * (figures, inline scrubble numbers, formula terms and prose spot colours)
+ *
+ *   TEAL   #62D0AD  whatever the student drags, and the quantity that handle controls
+ *   INDIGO #8E90F5  everything measured from A  (arc from A, PA, PM1)
+ *   VIOLET #AC8BF9  everything measured from B  (arc from B, PB, PM2)
+ *   ROSE   #F8A0CD  the perpendicular bisector / perpendicular and its right angle
+ *   SKY    #62CCF9  the point the construction produces (midpoint M, foot F)
+ *   SAGE   #A8D5A2  the length of the segment AB
+ *   CORAL  #F4A89A  student answers
+ */
 export const variableDefinitions: Record<string, VariableDefinition> = {
     // ========================================
     // SECTION: The Point That Is Equally Far From Both Ends
@@ -116,7 +128,29 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         min: 4,
         max: 9,
         step: 1,
+        color: '#A8D5A2',
+    },
+    equalDistanceToA: {
+        defaultValue: 3.16,
+        type: 'number',
+        label: 'Distance PA',
+        description: 'Live distance from the roaming point to A, written by the figure and read by the formula',
+        unit: 'cm',
+        min: 0,
+        max: 12,
+        step: 0.1,
         color: '#8E90F5',
+    },
+    equalDistanceToB: {
+        defaultValue: 1.98,
+        type: 'number',
+        label: 'Distance PB',
+        description: 'Live distance from the roaming point to B, written by the figure and read by the formula',
+        unit: 'cm',
+        min: 0,
+        max: 12,
+        step: 0.1,
+        color: '#AC8BF9',
     },
     equalDistanceMarks: {
         defaultValue: [],
@@ -129,8 +163,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         type: 'text',
         label: 'Equal-distance highlight',
         description: 'Which measured distance is currently highlighted: distanceToA or distanceToB',
-        color: '#62D0AD',
-        bgColor: 'rgba(98, 208, 173, 0.22)',
+        color: '#F8A0CD',
+        bgColor: 'rgba(248, 160, 205, 0.22)',
     },
     answer_equal_distance_line: {
         defaultValue: '',
@@ -140,7 +174,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         placeholder: '???',
         correctAnswer: 'perpendicular bisector',
         options: ['perpendicular bisector', 'midpoint', 'longest side', 'parallel line'],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
     answer_equal_distance_tilted: {
         defaultValue: '',
@@ -150,7 +185,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         placeholder: '???',
         correctAnswer: 'no, only the middle one',
         options: ['no, only the middle one', 'yes, all of them', 'no, none of them'],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
 
     // ========================================
@@ -166,7 +202,7 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         min: 2,
         max: 5,
         step: 0.1,
-        color: '#64748B',
+        color: '#8E90F5',
     },
     fixedOpeningRadiusB: {
         defaultValue: 3.2,
@@ -177,15 +213,26 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         min: 2,
         max: 5,
         step: 0.1,
-        color: '#64748B',
+        color: '#AC8BF9',
     },
     fixedOpeningHighlight: {
         defaultValue: '',
         type: 'text',
         label: 'Fixed opening highlight',
         description: 'Which element of the arcs figure is highlighted: arcFromA, arcFromB or crossingLine',
-        color: '#62D0AD',
-        bgColor: 'rgba(98, 208, 173, 0.22)',
+        color: '#F8A0CD',
+        bgColor: 'rgba(248, 160, 205, 0.22)',
+    },
+    answer_fixed_opening_relation: {
+        defaultValue: '',
+        type: 'select',
+        label: 'Answer: relation between the two openings',
+        description: 'Formula choice for the relation the two compass openings must satisfy',
+        placeholder: '?',
+        correctAnswer: '=',
+        options: ['=', '<', '>'],
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.28)',
     },
     answer_fixed_opening_equal: {
         defaultValue: '',
@@ -194,7 +241,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         description: 'Student answer describing the relationship the two compass openings must have',
         placeholder: '???',
         correctAnswer: ['equal', 'the same', 'same', 'identical'],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
     answer_fixed_opening_arcs: {
         defaultValue: '',
@@ -208,7 +256,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
             'nothing, the line is still correct',
             'the midpoint of the segment',
         ],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
 
     // ========================================
@@ -236,13 +285,24 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         step: 0.05,
         color: '#62D0AD',
     },
+    midpointOpening: {
+        defaultValue: 4.11,
+        type: 'number',
+        label: 'Compass opening',
+        description: 'Live compass opening of the bisector construction, written by the figure and read by the formula',
+        unit: 'cm',
+        min: 0,
+        max: 12,
+        step: 0.01,
+        color: '#62D0AD',
+    },
     midpointHighlight: {
         defaultValue: '',
         type: 'text',
         label: 'Midpoint figure highlight',
         description: 'Which element is highlighted: arcsFromA, arcsFromB, bisector or midpoint',
-        color: '#62D0AD',
-        bgColor: 'rgba(98, 208, 173, 0.22)',
+        color: '#F8A0CD',
+        bgColor: 'rgba(248, 160, 205, 0.22)',
     },
     answer_midpoint_exact_half: {
         defaultValue: '',
@@ -251,7 +311,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         description: 'Student answer for half of 9.5 cm',
         placeholder: '???',
         correctAnswer: ['4.75', '4.75 cm', '4,75'],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
     answer_midpoint_why_exact: {
         defaultValue: '',
@@ -265,7 +326,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
             'a pair of compasses is a more accurate tool than a ruler',
             'the arcs make the segment easier to halve',
         ],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
 
     // ========================================
@@ -294,13 +356,34 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         step: 0.1,
         color: '#62D0AD',
     },
+    perpendicularOpening: {
+        defaultValue: 2.49,
+        type: 'number',
+        label: 'Opening from P',
+        description: 'Live distance from P to each mark on the line, written by the figure and read by the formula',
+        unit: 'cm',
+        min: 0,
+        max: 6,
+        step: 0.01,
+        color: '#62D0AD',
+    },
     perpendicularHighlight: {
         defaultValue: '',
         type: 'text',
         label: 'Perpendicular figure highlight',
         description: 'Which element is highlighted: arcFromPoint, marksOnLine or perpendicular',
-        color: '#62D0AD',
-        bgColor: 'rgba(98, 208, 173, 0.22)',
+        color: '#F8A0CD',
+        bgColor: 'rgba(248, 160, 205, 0.22)',
+    },
+    answer_perpendicular_angle: {
+        defaultValue: '',
+        type: 'text',
+        label: 'Answer: the angle at the foot',
+        description: 'Formula cloze answer for the angle between the constructed upright and the line',
+        placeholder: '??',
+        correctAnswer: ['90', '90°'],
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.28)',
     },
     answer_perpendicular_foot: {
         defaultValue: '',
@@ -309,7 +392,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
         description: 'Student answer naming the foot of the perpendicular in terms of the two marks',
         placeholder: '???',
         correctAnswer: ['midpoint', 'mid-point', 'mid point', 'middle'],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
     answer_perpendicular_first_step: {
         defaultValue: '',
@@ -323,7 +407,8 @@ export const variableDefinitions: Record<string, VariableDefinition> = {
             'join Q to the nearer end of the line',
             'measure a right angle at Q with a protractor',
         ],
-        color: '#8E90F5',
+        color: '#F4A89A',
+        bgColor: 'rgba(244, 168, 154, 0.22)',
     },
 
     // ========================================

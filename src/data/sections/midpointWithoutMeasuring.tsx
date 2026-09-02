@@ -1,4 +1,4 @@
-import React, { useRef, useState, type ReactElement } from "react";
+import React, { useEffect, useRef, useState, type ReactElement } from "react";
 import { StackLayout } from "@/components/layouts";
 import { Block } from "@/components/templates";
 import {
@@ -9,15 +9,22 @@ import {
     InlineFeedback,
     InlineLinkedHighlight,
     InlineScrubbleNumber,
+    InlineSpotColor,
+    InlineTooltip,
+    InlineTrigger,
     InteractionHintSequence,
 } from "@/components/atoms";
-import { Figure, FigureSlider } from "@/components/molecules";
+import { Figure, FigureSlider, FormulaBlock } from "@/components/molecules";
 import { useVar, useSetVar } from "@/stores";
 import { clamp } from "@/lib/motion";
 import {
     getVariableInfo,
     numberPropsFromDefinition,
     linkedHighlightPropsFromDefinition,
+    spotColorPropsFromDefinition,
+    clozePropsFromDefinition,
+    choicePropsFromDefinition,
+    scrubVarsFromDefinitions,
 } from "../variables";
 
 // ── View geometry ────────────────────────────────────────────────────────────
@@ -38,9 +45,12 @@ const DEFAULT_HEIGHT = 1.9;
 const DEFAULT_STEP = 2;
 
 const INK = "#334155";
-const INK_STRUCTURE = "#64748B";
 const INK_QUIET = "#CBD5E1";
-const ACCENT = "#62D0AD"; // ONE accent: the crossings, the bisector and the midpoint
+const HANDLE = "#62D0AD"; // teal — the crossing point you drag, and the opening it sets
+const SIDE_A = "#8E90F5"; // indigo — the arcs swung from A
+const SIDE_B = "#AC8BF9"; // violet — the arcs swung from B
+const BISECTOR = "#F8A0CD"; // rose — the perpendicular bisector and its right angle
+const MIDPOINT = "#62CCF9"; // sky — the midpoint M, the point the construction produces
 
 const EASE_150 = { transition: "opacity 150ms ease, stroke-width 150ms ease" } as const;
 
@@ -92,6 +102,11 @@ function BisectorConstructionDrawing() {
 
     // One compass opening serves both arcs: it is fixed by where they cross.
     const opening = Math.hypot(HALF_SEGMENT, crossingHeight);
+
+    // Publish it so the formula below the figure can read it live.
+    useEffect(() => {
+        setVar("midpointOpening", Math.round(opening * 100) / 100);
+    }, [opening, setVar]);
     const openingPx = opening * PIXELS_PER_CM;
     const crossingAngle = (Math.atan2(crossingHeight, HALF_SEGMENT) * 180) / Math.PI;
 
@@ -140,7 +155,7 @@ function BisectorConstructionDrawing() {
             <text
                 x={24}
                 y={32}
-                fill={INK}
+                fill={HANDLE}
                 fontSize="12"
                 textAnchor="start"
                 opacity={dim("opening")}
@@ -151,7 +166,7 @@ function BisectorConstructionDrawing() {
             <text
                 x={VIEW_WIDTH - 24}
                 y={32}
-                fill={step >= 5 ? ACCENT : INK}
+                fill={step >= 5 ? MIDPOINT : INK}
                 fontSize="12"
                 textAnchor="end"
                 opacity={dim("midpoint")}
@@ -198,12 +213,12 @@ function BisectorConstructionDrawing() {
                     {arcsFrom(pointA, true).map((path, index) => (
                         <g key={`arc-a-${index}`}>
                             {active("arcsFromA") && (
-                                <path d={path} fill="none" stroke={ACCENT} strokeWidth="8" opacity={0.28} strokeLinecap="round" />
+                                <path d={path} fill="none" stroke={SIDE_A} strokeWidth="8" opacity={0.28} strokeLinecap="round" />
                             )}
                             <path
                                 d={path}
                                 fill="none"
-                                stroke={active("arcsFromA") ? ACCENT : INK_STRUCTURE}
+                                stroke={SIDE_A}
                                 strokeWidth={active("arcsFromA") ? 3 : 1.8}
                                 strokeLinecap="round"
                                 style={EASE_150}
@@ -228,12 +243,12 @@ function BisectorConstructionDrawing() {
                     {arcsFrom(pointB, false).map((path, index) => (
                         <g key={`arc-b-${index}`}>
                             {active("arcsFromB") && (
-                                <path d={path} fill="none" stroke={ACCENT} strokeWidth="8" opacity={0.28} strokeLinecap="round" />
+                                <path d={path} fill="none" stroke={SIDE_B} strokeWidth="8" opacity={0.28} strokeLinecap="round" />
                             )}
                             <path
                                 d={path}
                                 fill="none"
-                                stroke={active("arcsFromB") ? ACCENT : INK_STRUCTURE}
+                                stroke={SIDE_B}
                                 strokeWidth={active("arcsFromB") ? 3 : 1.8}
                                 strokeLinecap="round"
                                 style={EASE_150}
@@ -252,7 +267,7 @@ function BisectorConstructionDrawing() {
                             y1={40}
                             x2={midX}
                             y2={320}
-                            stroke={ACCENT}
+                            stroke={BISECTOR}
                             strokeWidth="10"
                             opacity={0.28}
                             strokeLinecap="round"
@@ -263,7 +278,7 @@ function BisectorConstructionDrawing() {
                         y1={40}
                         x2={midX}
                         y2={320}
-                        stroke={ACCENT}
+                        stroke={BISECTOR}
                         strokeWidth={active("bisector") ? 4 : 2.8}
                         strokeLinecap="round"
                         style={EASE_150}
@@ -271,7 +286,7 @@ function BisectorConstructionDrawing() {
                     <path
                         d={`M ${midX + 13} ${LINE_Y} L ${midX + 13} ${LINE_Y - 13} L ${midX} ${LINE_Y - 13}`}
                         fill="none"
-                        stroke={ACCENT}
+                        stroke={BISECTOR}
                         strokeWidth="1.8"
                     />
                 </g>
@@ -280,7 +295,7 @@ function BisectorConstructionDrawing() {
             {/* Step 4 — the two crossing points */}
             {step >= 4 && (
                 <g opacity={dim("crossings")} style={EASE_150}>
-                    <circle cx={lower.x} cy={lower.y} r={6} fill={ACCENT} />
+                    <circle cx={lower.x} cy={lower.y} r={6} fill={HANDLE} />
                     <text x={lower.x + 16} y={lower.y + 16} fill={INK} fontSize="13" textAnchor="start">
                         Q
                     </text>
@@ -290,9 +305,9 @@ function BisectorConstructionDrawing() {
             {/* Step 5 — the midpoint M */}
             {step >= 5 && (
                 <g opacity={dim("midpoint")} style={EASE_150} {...hoverProps("midpoint")}>
-                    {active("midpoint") && <circle cx={midX} cy={LINE_Y} r={13} fill={ACCENT} opacity={0.28} />}
-                    <circle cx={midX} cy={LINE_Y} r={active("midpoint") ? 7.5 : 6} fill={ACCENT} style={EASE_150} />
-                    <text x={midX - 14} y={LINE_Y + 26} fill={INK} fontSize="13" textAnchor="end">
+                    {active("midpoint") && <circle cx={midX} cy={LINE_Y} r={13} fill={MIDPOINT} opacity={0.28} />}
+                    <circle cx={midX} cy={LINE_Y} r={active("midpoint") ? 7.5 : 6} fill={MIDPOINT} style={EASE_150} />
+                    <text x={midX - 14} y={LINE_Y + 26} fill={MIDPOINT} fontSize="13" textAnchor="end">
                         M
                     </text>
                 </g>
@@ -305,7 +320,7 @@ function BisectorConstructionDrawing() {
                         cx={upper.x}
                         cy={upper.y}
                         r={handleRadius}
-                        fill={ACCENT}
+                        fill={HANDLE}
                         filter="url(#bisector-handle-shadow)"
                         style={{ transition: "r 150ms ease" }}
                     />
@@ -350,6 +365,7 @@ function BisectorConstructionFigure() {
                 setVar("midpointConstructionStep", DEFAULT_STEP);
                 setVar("midpointCrossingHeight", DEFAULT_HEIGHT);
                 setVar("midpointHighlight", "");
+                setVar("midpointOpening", Math.round(Math.hypot(HALF_SEGMENT, DEFAULT_HEIGHT) * 100) / 100);
             }}
         >
             <BisectorConstructionDrawing />
@@ -390,10 +406,17 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
     <StackLayout key="layout-midpoint-setup" maxWidth="xl">
         <Block id="midpoint-setup" padding="sm">
             <EditableParagraph id="para-midpoint-setup" blockId="midpoint-setup">
-                A ruler gives a midpoint that is nearly right, and nearly is fine for a shelf. It is
-                useless in geometry, where the next line of a proof leans on that point being exact.
-                Step through the construction below, then drag the teal crossing point up and down to
-                open both compasses wider at once.
+                A ruler gives a{" "}
+                <InlineTooltip
+                    id="tooltip-midpoint-word"
+                    tooltip="The midpoint of a segment is the one point that splits it into two equal halves."
+                >
+                    midpoint
+                </InlineTooltip>{" "}
+                that is nearly right, and nearly is fine for a shelf. It is useless in geometry,
+                where the next line of a proof leans on that point being exact. Step through the
+                construction below, then drag the teal crossing point up and down to open both
+                compasses wider at once.
             </EditableParagraph>
         </Block>
     </StackLayout>,
@@ -404,6 +427,20 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
         </Block>
     </StackLayout>,
 
+    <StackLayout key="layout-midpoint-formula" maxWidth="xl">
+        <Block id="midpoint-formula" padding="lg">
+            <FormulaBlock
+                latex="\clr{opening}{d} = \sqrt{3.65^2 + \scrub{midpointCrossingHeight}^2} = \val{midpointOpening}\,\text{cm} \quad \clr{midpoint}{AM} = \clr{midpoint}{MB}"
+                colorMap={{ opening: "#62D0AD", midpoint: "#62CCF9" }}
+                variables={{
+                    ...scrubVarsFromDefinitions(['midpointCrossingHeight', 'midpointOpening']),
+                    midpointCrossingHeight: { min: 1.2, max: 2.8, step: 0.05, color: "#62D0AD", formatValue: (value: number) => value.toFixed(2) },
+                    midpointOpening: { color: "#62D0AD", step: 0.01, formatValue: (value: number) => value.toFixed(2) },
+                }}
+            />
+        </Block>
+    </StackLayout>,
+
     <StackLayout key="layout-midpoint-insight" maxWidth="xl">
         <Block id="midpoint-insight" padding="sm">
             <EditableParagraph id="para-midpoint-insight" blockId="midpoint-insight">
@@ -411,7 +448,8 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                 <InlineLinkedHighlight
                     varName="midpointHighlight"
                     highlightId="midpoint"
-                    {...linkedHighlightPropsFromDefinition(getVariableInfo('midpointHighlight'))}
+                    color="#62CCF9"
+                    bgColor="rgba(98, 204, 249, 0.22)"
                 >
                     midpoint M
                 </InlineLinkedHighlight>{" "}
@@ -429,8 +467,18 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                     {...numberPropsFromDefinition(getVariableInfo('midpointCrossingHeight'))}
                     formatValue={(value: number) => `${value.toFixed(1)} cm`}
                 />{" "}
-                above and below the line: the arcs swell, the crossings slide, and M does not budge.
-                It was never measured, so there was nothing to round.
+                and the{" "}
+                <InlineSpotColor
+                    varName="midpointOpening"
+                    {...spotColorPropsFromDefinition(getVariableInfo('midpointOpening'))}
+                >
+                    opening d
+                </InlineSpotColor>{" "}
+                grows with them, yet M does not budge. Jump to the{" "}
+                <InlineTrigger varName="midpointConstructionStep" value={5} icon="play">
+                    finished bisector
+                </InlineTrigger>{" "}
+                and read M off: it was never measured, so there was nothing to round.
             </EditableParagraph>
         </Block>
     </StackLayout>,
@@ -450,7 +498,7 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                     <InlineClozeInput
                         varName="answer_midpoint_exact_half"
                         correctAnswer={["4.75", "4.75 cm", "4,75"]}
-                        placeholder="???"
+                        {...clozePropsFromDefinition(getVariableInfo('answer_midpoint_exact_half'))}
                     />
                 </InlineFeedback>{" "}
                 cm, a reading no millimetre mark can give you.
@@ -507,7 +555,7 @@ export const midpointWithoutMeasuringBlocks: ReactElement[] = [
                             "a pair of compasses is a more accurate tool than a ruler",
                             "the arcs make the segment easier to halve",
                         ]}
-                        placeholder="???"
+                        {...choicePropsFromDefinition(getVariableInfo('answer_midpoint_why_exact'))}
                     />
                 </InlineFeedback>
             </EditableParagraph>

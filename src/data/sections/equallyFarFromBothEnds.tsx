@@ -137,11 +137,31 @@ function EqualDistanceDrawing() {
     const screenB = { x: toScreenX(halfSegment), y: toScreenY(0) };
     const screenP = { x: toScreenX(pointX), y: toScreenY(pointY) };
 
-    // Rod labels ride the middle of each rod, clamped so they never leave the frame.
-    const labelHalfWidth = 44; // widest label is "PA = 10.6 cm" ≈ 86 units
-    const labelX = (from: { x: number }) =>
-        clamp((from.x + screenP.x) / 2, 24 + labelHalfWidth, VIEW_WIDTH - 24 - labelHalfWidth);
-    const labelY = (from: { y: number }) => (from.y + screenP.y) / 2 - 10;
+    // Rod labels sit off the middle of their rod, pushed out along the rod's
+    // normal on the side away from AB's centre and anchored so the text runs
+    // away from the rod: beside a steep rod, above or below a flat one. The
+    // clamps keep the readout inside the frame at every reachable point.
+    const labelHalfWidth = 58; // widest label is "PA = 10.6 cm" ≈ 115 units at 16px
+    const abCentre = { x: (screenA.x + screenB.x) / 2, y: (screenA.y + screenB.y) / 2 };
+    const labelLayout = (from: { x: number; y: number }): { x: number; y: number; anchor: "start" | "middle" | "end" } => {
+        const mid = { x: (from.x + screenP.x) / 2, y: (from.y + screenP.y) / 2 };
+        const length = Math.hypot(screenP.x - from.x, screenP.y - from.y) || 1;
+        let normal = { x: -(screenP.y - from.y) / length, y: (screenP.x - from.x) / length };
+        if (normal.x * (mid.x - abCentre.x) + normal.y * (mid.y - abCentre.y) < 0) {
+            normal = { x: -normal.x, y: -normal.y };
+        }
+        const anchor = normal.x > 0.3 ? "start" : normal.x < -0.3 ? "end" : "middle";
+        const push = anchor === "middle" ? 20 : 14;
+        const minX = anchor === "start" ? 24 : anchor === "end" ? 24 + 2 * labelHalfWidth : 24 + labelHalfWidth;
+        const maxX = anchor === "start" ? VIEW_WIDTH - 24 - 2 * labelHalfWidth : anchor === "end" ? VIEW_WIDTH - 24 : VIEW_WIDTH - 24 - labelHalfWidth;
+        return {
+            x: clamp(mid.x + normal.x * push, minX, maxX),
+            y: clamp(mid.y + normal.y * push + 5, 22, VIEW_HEIGHT - 10),
+            anchor,
+        };
+    };
+    const labelA = labelLayout(screenA);
+    const labelB = labelLayout(screenB);
 
     const markCount = Math.floor(marks.length / 2);
     const markCountColour = markCount > 0 ? BISECTOR : INK;
@@ -158,9 +178,9 @@ function EqualDistanceDrawing() {
             {/* Running count of the marks left behind */}
             <text
                 x={24}
-                y={32}
+                y={34}
                 fill={markCountColour}
-                fontSize="12"
+                fontSize="16"
                 textAnchor="start"
                 opacity={opacityFor("count")}
                 style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
@@ -197,10 +217,10 @@ function EqualDistanceDrawing() {
                 <circle cx={screenB.x} cy={screenB.y} r={5} fill={INK_STRUCTURE} />
                 <circle cx={screenA.x} cy={screenA.y} r={9} fill="none" stroke={INK_QUIET} strokeWidth="1.5" />
                 <circle cx={screenB.x} cy={screenB.y} r={9} fill="none" stroke={INK_QUIET} strokeWidth="1.5" />
-                <text x={screenA.x} y={screenA.y + 30} fill={INK} fontSize="13" textAnchor="middle">
+                <text x={screenA.x} y={screenA.y + 32} fill={INK} fontSize="17" textAnchor="middle">
                     A
                 </text>
-                <text x={screenB.x} y={screenB.y + 30} fill={INK} fontSize="13" textAnchor="middle">
+                <text x={screenB.x} y={screenB.y + 32} fill={INK} fontSize="17" textAnchor="middle">
                     B
                 </text>
             </g>
@@ -230,12 +250,12 @@ function EqualDistanceDrawing() {
                     style={EASE_150}
                 />
                 <text
-                    x={labelX(screenA)}
-                    y={labelY(screenA)}
+                    x={labelA.x}
+                    y={labelA.y}
                     fill={SIDE_A}
-                    fontSize="12"
+                    fontSize="16"
                     fontWeight={isEqual ? 600 : 400}
-                    textAnchor="middle"
+                    textAnchor={labelA.anchor}
                     style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
                 >
                     {`PA = ${formatLength(distanceToA)}`}
@@ -267,12 +287,12 @@ function EqualDistanceDrawing() {
                     style={EASE_150}
                 />
                 <text
-                    x={labelX(screenB)}
-                    y={labelY(screenB)}
+                    x={labelB.x}
+                    y={labelB.y}
                     fill={SIDE_B}
-                    fontSize="12"
+                    fontSize="16"
                     fontWeight={isEqual ? 600 : 400}
-                    textAnchor="middle"
+                    textAnchor={labelB.anchor}
                     style={{ ...EASE_150, fontVariantNumeric: "tabular-nums" }}
                 >
                     {`PB = ${formatLength(distanceToB)}`}
